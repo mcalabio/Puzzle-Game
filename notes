@@ -1,15 +1,12 @@
 
 
-WIN CONDITIONS:
-no more robots
+To destroy robots, should just have robots in same stack as flasks.  Flask doesn't have to fall from above.
 
-LOSE CONDITIONS:
-no more potions to destroy robots of certain color
-no more blocks to destroy robots of certain color
+Have cursor encompass all that is being held in hand
 
-LEVEL SETUP:
-6 levels
-amount of colors increases
-amount of robot colors increases
+Controls
+Directions and action button (K)
 
-3 4 5 6 7 8
+K grabs/drops one block
+
+Down drops all

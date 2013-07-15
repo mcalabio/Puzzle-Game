@@ -25,6 +25,7 @@
     // GLOBALS
     var player_level = 1
     var player_stage = 1
+    var control_scheme = 1
 
     function Game() {
       var player
@@ -49,34 +50,49 @@
       /* update() will get called each game tick with your specified FPS. Put game logic here. */
       this.update = function() {
 
-        jaws.on_keydown("a", function() {
-          if(player.x > 0 && player.canMoveX(-1)) {
-            player.moveX(-1)
-          }
+        // Player Controls
+
+        jaws.on_keydown(["left","a"], function() {
+          if(player.x > 0) {
+            if (player.canMoveX(-1)) player.moveX(-1)
+            else {
+              // player.drop(player.board.stacks[player.x],BOARD_HEIGHT - (player.hand.items.length - player.board.stacks[player.x - 1].items.length) - 1)
+            }
+          } 
           console.log("player (" + player.x + " , " + player.y + ")")
         })
-        jaws.on_keydown("d", function() {
+        jaws.on_keydown(["right","d"], function() {
           if(player.x < BOARD_WIDTH-1 && player.canMoveX(1)) {
             player.moveX(1)
           }
           console.log("player (" + player.x + " , " + player.y + ")")
         })
-        jaws.on_keydown("w", function() {
+        jaws.on_keydown(["up","w"], function() {
           if(player.y < BOARD_HEIGHT-1)player.y += 1
           console.log("player (" + player.x + " , " + player.y + ")")
         })
-        jaws.on_keydown("s", function() {
-          if(player.y > 0) player.y -= 1
+        jaws.on_keydown(["down","s"], function() {
+
+          if(control_scheme == 1) {
+            if(player.y > 0) player.y -= 1
+          } else if(control_scheme == 2) {
+            if(player.hand.items.length>0) {
+              player.drop(player.board.stacks[player.x],player.hand.items.length)              
+            } else if(player.y > 0) player.y -= 1
+          }
+
           console.log("player (" + player.x + " , " + player.y + ")")
         })
-        jaws.on_keydown("k", function() {
-          if(player.hand.items.length == 0) {          
-            player.grab(player.board.stacks[player.x],player.board.stacks[player.x].items.length)
-          } else {
-            player.drop(player.board.stacks[player.x],player.hand.items.length)
+        jaws.on_keydown(["z","k"], function() {
+          if(control_scheme == 1) {
+            if(player.hand.items.length == 0) {          
+              player.grab(player.board.stacks[player.x],player.board.stacks[player.x].items.length)
+            } else {
+              player.drop(player.board.stacks[player.x],player.hand.items.length)
+            }
           }
         })
-        jaws.on_keydown("j", function() {
+        jaws.on_keydown(["x","j"], function() {
           if(player.hand.items.length == 0) {
             //grab depth determined by cursor y-position
             var depth = player.board.stacks[player.x].items.length - player.y
@@ -122,9 +138,13 @@
         this.y = y
         this.board = new Board(this)
         this.hand = new Stack(this.board) // passing in Player board
+        this.cursor_speed = X_SPEED
 
-        this.cursor = new jaws.Sprite({x:this.board.posx(x), y:this.board.posy(y), image:"images/cursor.gif", anchor:"left"})
+        this.sprite_sheet = new jaws.SpriteSheet({
+          image: "images/cursor.gif", frame_size: [40,20]})
 
+        this.cursor_top = new jaws.Sprite({x:this.board.posx(x), y:this.board.posy(y), image: this.sprite_sheet.frames[0]})
+        this.cursor_bottom = new jaws.Sprite({x:this.board.posx(x), y:(this.board.posy(y)+20), image: this.sprite_sheet.frames[1]})
 
         // check if player hand can move in x direction
         this.canMoveX = function(x) {
@@ -151,6 +171,9 @@
 
         // grab depth amount of items from stack
         this.grab = function(stack,depth) {
+
+          // move the cursor quickly to the top of the screen
+          this.cursor_speed = Y_SPEED
 
           for(var i=0; i<depth; i++) {
 
@@ -208,15 +231,42 @@
 
         }
 
+        // update player sprites positions
+        this.updatePlayerSprites = function(dx,dy) {
+
+          var cursor_top = this.cursor_top
+          var cursor_bottom = this.cursor_bottom
+
+          cursor_top.dx = cursor_bottom.dx = this.board.posx(this.x)
+
+          if (this.hand.items.length == 0) {
+            cursor_top.dy = this.board.posy(this.y)
+            cursor_bottom.dy = this.board.posy(this.y) + cursor_bottom.height
+          } else {
+            cursor_top.dy = this.board.posy(BOARD_HEIGHT-1)
+            cursor_bottom.dy = this.board.posy(BOARD_HEIGHT - this.hand.items.length) + cursor_bottom.height
+          }
+
+          spriteMove(cursor_top,X_SPEED,this.cursor_speed)
+          spriteMove(cursor_bottom,X_SPEED,this.cursor_speed)
+
+          // reset cursor speed when it reaches dy
+          if (this.hand.items.length == 0 && cursor_top.dy == cursor_top.y) this.cursor_speed = X_SPEED
+
+
+        }
+
         // update player sprites, board sprites, etc.
         this.update = function() {
 
           // update cursor position
           var cursor = this.cursor
 
-          cursor.dx = this.board.posx(this.x)
-          cursor.dy = this.board.posy(this.y)
-          spriteMove(cursor,X_SPEED,X_SPEED)
+          // cursor.dx = this.board.posx(this.x)
+          // cursor.dy = this.board.posy(this.y)
+          // spriteMove(cursor,X_SPEED,X_SPEED)
+
+          this.updatePlayerSprites(this.board.posx(this.x),this.board.posy(this.y))
 
           this.board.update() // updates sprites for each stack
           this.hand.update()  // updates sprites for items in hand
@@ -227,7 +277,10 @@
         this.draw = function() {
           this.board.draw()
           this.hand.draw()
-          jaws.context.drawImage(jaws.assets.get("images/cursor.gif"), this.cursor.x, this.cursor.y)
+          // jaws.context.drawImage(jaws.assets.get("images/cursor.gif"), this.cursor.x, this.cursor.y)
+
+          this.cursor_top.draw()
+          this.cursor_bottom.draw()
         }
 
       }
@@ -388,11 +441,36 @@
               console.log("block count = " + this.block_count[c])
               console.log("flask_count = " + this.flask_count[c])
               if (this.block_count[c] < 3 && this.flask_count[c] <= 0) {
+
                 console.log("lose!")
                 jaws.start(Game)
               }
             }
           }
+
+        }
+
+        // check for items of specified type,color that are breaking
+        this.checkForBreaking = function(type,color) {
+
+          console.log("checking for breaking robot of color: " + color)
+
+          for (var i=0; i < this.stacks.length; i++) {
+
+            var this_stack = this.stacks[i]
+
+            // check each item of the stack
+            for (var j=0; j < this_stack.items; j++) {
+              var this_item = this_stack.items[j]
+              if (this_item.type == type && this_item.color == color) {
+                console.log("breaking robot of color (" + color + ") found!")
+                return true
+              }
+            }
+
+          }
+
+          return false
 
         }
 
@@ -527,6 +605,8 @@
 
         this.removeItem = function(old_item) {
 
+          console.log("removing (" + old_item.type + ") of color (" + old_item.color + ")")
+
           // remove old item from items array
           this.items.splice(old_item.y,1)
 
@@ -547,22 +627,23 @@
           }
 
           // check for win/lose only when blocks and robots are broken since flasks break first
-          if (old_item.type == 0) {
-            this.board.checkWinLose() // check for win/lose conditions
-          } else if (old_item.type == 2) {
-            // make sure that there are no other robots in the process of being removed
-            var below = this.items[old_item.y - 1]
-            if(below == undefined) {
-              console.log("nothing below, so check for win/lose")
-              this.board.checkWinLose()
-            } else {
-              // if there is an item below, check if it is a robot of the same color
-              if (!(below.type == 2 && below.color == old_item.color && below.breaking)) {
-                console.log("Richard Marx")
+          // but only check when items aren't breaking
+          if (!old_item.stack.itemsBreaking()) {
+            if (old_item.type == 0 || old_item.type == 1) {
+              this.board.checkWinLose() // check for win/lose conditions
+            } else if (old_item.type == 2) {
+              // make sure that there are no other robots in the process of being removed
+              var below = this.items[old_item.y - 1]
+              if(below == undefined) {
                 this.board.checkWinLose()
+              } else {
+                // if there is an item below, check if it is a robot of the same color
+                if (!(below.type == 2 && below.color == old_item.color && below.breaking)) {
+                  this.board.checkWinLose()
+                }
               }
-            }
 
+            }
           }
 
           console.log("block_count = " + this.board.block_count)
@@ -591,7 +672,27 @@
 
         }
 
+        // clear array of robots followed by array of flasks
+        this.clearRobotsFlasks = function(robots_to_clear,flasks_to_clear) {
+
+          for (var r = 0; r < robots_to_clear.length; r++) {
+            robots_to_clear[r].breaking = true
+          }
+
+          for (var f = 0; f < flasks_to_clear.length; f++) {
+
+            flasks_to_clear[f].breaking = true
+
+          }
+
+        }
+
         this.update = function() {
+
+          // make sure to break flask last or the game will think lose condition is met
+          // put flasks and robots to break into respective arrays
+          var flasks_to_clear = new Array()
+          var robots_to_clear = new Array()
 
           // update each item
           for(var i=0; i<this.items.length; i++) {
@@ -671,14 +772,20 @@
               // update robots
               else if (item.type == 2) {
 
+                // clear robots
+
                 var above = this.items[i + 1]
+                var below = this.items[i - 1]
                 if (above != undefined) {
 
                   // break robot and same-colored flask above
                   if (above.sleepcounter == 0 && above.color == item.color && above.type == 1) {
 
-                    item.breaking = true
-                    above.breaking = true
+                    // item.breaking = true
+                    // above.breaking = true
+
+                    robots_to_clear.push(item)
+                    flasks_to_clear.push(above)
 
                     above.chain += 1
                     item.chain += above.chain
@@ -688,9 +795,41 @@
                   // break if robot above is breaking
                   } else if (above.type == 2 && above.color == item.color && above.breaking) {
 
-                    item.breaking = true
+                    // item.breaking = true
+
+                    robots_to_clear.push(item)
 
                     item.chain = above.chain
+
+                    console.log("robot combo of color (" + item.color + ") with chain = " + item.chain)
+
+                  }
+                }
+
+                if (below != undefined) {
+
+                  // break robot and same-colored flask below
+                  if (below.sleepcounter == 0 && below.color == item.color && below.type == 1) {
+
+                    // item.breaking = true
+                    // below.breaking = true
+
+                    robots_to_clear.push(item)
+                    flasks_to_clear.push(below)
+
+                    below.chain += 1
+                    item.chain += below.chain
+
+                    console.log("(" + below.color + ") flask breaking robot of color (" + item.color + ") with chain = " + item.chain)
+
+                  // break if robot below is breaking
+                  } else if (below.type == 2 && below.color == item.color && below.breaking) {
+
+                    // item.breaking = true
+
+                    robots_to_clear.push(item)
+
+                    item.chain = below.chain
 
                     console.log("robot combo of color (" + item.color + ") with chain = " + item.chain)
 
@@ -700,6 +839,9 @@
               }
             }
           }
+
+          this.clearRobotsFlasks(robots_to_clear,flasks_to_clear)
+
         }
 
         this.draw = function() {
@@ -833,6 +975,10 @@
           }
         })
         jaws.on_keydown(["enter","space"],  function()  { jaws.switchGameState(Game) } )
+        jaws.on_keydown(["c"], function() {
+          if(control_scheme == 1) control_scheme = 2
+          else if (control_scheme == 2) control_scheme  = 1
+        })
       }
 
       this.draw = function() {
@@ -844,7 +990,12 @@
           jaws.context.fillStyle =  (i == index) ? "Red" : "Black"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
           jaws.context.fillText(items[i], 225 + i * 60, 225)
-        }  
+        }
+        jaws.context.font = "bold 30pt terminal";
+        jaws.context.lineWidth = 10
+        jaws.context.fillStyle =  "Black"
+        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+        jaws.context.fillText("controls: " + control_scheme, 225, 400)  
       }
     }    
     
