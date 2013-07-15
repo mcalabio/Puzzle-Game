@@ -56,15 +56,30 @@
           if(player.x > 0) {
             if (player.canMoveX(-1)) player.moveX(-1)
             else {
-              // player.drop(player.board.stacks[player.x],BOARD_HEIGHT - (player.hand.items.length - player.board.stacks[player.x - 1].items.length) - 1)
+              // drop minimum amount of items on hand so hand can move left
+              var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length)
+              if (drop_amount > 0) {
+                player.drop(player.board.stacks[player.x],drop_amount)
+                player.moveX(-1)
+              }
+
             }
           } 
           console.log("player (" + player.x + " , " + player.y + ")")
         })
         jaws.on_keydown(["right","d"], function() {
-          if(player.x < BOARD_WIDTH-1 && player.canMoveX(1)) {
-            player.moveX(1)
-          }
+          if(player.x < BOARD_WIDTH - 1) {
+            if (player.canMoveX(1)) player.moveX(1)
+            else {
+              // drop minimum amount of items on hand so hand can move right
+              var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length)
+              if (drop_amount > 0) {
+                player.drop(player.board.stacks[player.x],drop_amount)
+                player.moveX(1)
+              }
+
+            }
+          } 
           console.log("player (" + player.x + " , " + player.y + ")")
         })
         jaws.on_keydown(["up","w"], function() {
