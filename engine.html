@@ -58,7 +58,7 @@
             else {
               // drop minimum amount of items on hand so hand can move left
               var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length)
-              if (drop_amount > 0) {
+              if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length > 0) {
                 player.drop(player.board.stacks[player.x],drop_amount)
                 player.moveX(-1)
               }
@@ -73,7 +73,7 @@
             else {
               // drop minimum amount of items on hand so hand can move right
               var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length)
-              if (drop_amount > 0) {
+              if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length > 0) {
                 player.drop(player.board.stacks[player.x],drop_amount)
                 player.moveX(1)
               }
@@ -220,20 +220,23 @@
         // drop depth amount of items onto stack
         this.drop = function(stack,depth) {
 
+          var hand_items = this.hand.items
+          var stack_items = stack.items
+
           for(var i=0; i<depth; i++) {
-            stack.items.push(this.hand.items.pop())
+            stack.items.push(hand_items.pop())
 
             // update stack items
-            var item = stack.items.pop()
+            var item = stack_items.pop()
             item.x = this.x
-            item.y = stack.items.length
+            item.y = stack_items.length
             item.stack = stack
 
             // update sprite destination
             item.sprite.dx = this.board.posx(item.x) 
             item.sprite.dy = this.board.posy(item.y)
 
-            stack.items.push(item)
+            stack_items.push(item)
 
           }
 
@@ -243,6 +246,10 @@
 
           // check for matches
           stack.checkForMatches()
+
+          // reposition player's y position if hand is now empty
+          if (hand_items.length == 0) 
+            this.y = stack_items.length - depth // at item at bottom of hand stack          
 
         }
 
