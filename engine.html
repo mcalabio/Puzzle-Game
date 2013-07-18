@@ -20,12 +20,13 @@
     var BOARD_WIDTH = 6
     var BOARD_HEIGHT = 10
     var ITEM_WIDTH = 40
-    var COLORS = new Array("RED","GREEN","BLUE","YELLOW","PURPLE","WHITE","EMPTY")
+    var COLORS = new Array("RED","GREEN","BLUE","YELLOW","PURPLE","ORANGE","EMPTY","WHITE")
+    var EMPTY = COLORS.length - 2
 
     // GLOBALS
     var player_level = 1
     var player_stage = 1
-    var control_scheme = 1
+    var control_scheme = 2
 
     function Game() {
       var player
@@ -390,7 +391,12 @@
               else items_array.push([2,rand_color])
               
             }
-            else items_array.push([1,6])
+            else {
+              items_array.push([1,EMPTY])
+              console.log("color(" + EMPTY + ")")
+            }
+
+
 
             console.log(items_array[items_array.length - 1]) 
 
@@ -421,6 +427,7 @@
             }
             var item_top = items_array.pop()
 
+            console.log("color(" + item_top[1] + ")")
             this_stack.items.push(
               new Item(this_stack,item_top[0],item_top[1],rand_stack,this_stack.items.length)
             )
@@ -767,7 +774,7 @@
             if (item.stack != player.hand && !item.breaking) {
 
               // update empty flasks
-              if (item.type == 1 && item.color == 6) {
+              if (item.type == 1 && item.color == EMPTY) {
 
                 // check if blocks are breaking above
                 // fill flask with potion of that color
@@ -785,7 +792,7 @@
                       item.sprite.dy = this.board.posy(above.y - 1)
 
                       // update board count
-                      this.board.flask_count[6]--
+                      this.board.flask_count[EMPTY]--
                       this.board.flask_count[above.color]++
                     }
                   }
@@ -877,12 +884,14 @@
       /* Constructor for item */
       function Item(stack,type,color,x,y) {
 
+        console.log("making new item of type(" + type + "), color(" + COLORS[color] + ")")
+
         // an item has type and color
         this.stack = stack
         this.type = type
         this.color = color
-        if (color == 6) this.type = 1
-        else if (color > 6) {
+        if (color == EMPTY) this.type = 1
+        else if (color > EMPTY) {
           this.type = 2
           this.color = color - 7
         }
@@ -1026,7 +1035,7 @@
       console.log("TODO: update breaking condition ")
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
-      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif"])
+      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif"])
       jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
     }
   </script>
