@@ -28,14 +28,15 @@
 
     // GLOBALS
     var player_name = "Player 1"
-    var player_level = 1
-    var player_stage = 1
+    var player_level = 6
+    var player_stage = 6
     var control_scheme = 1
     var game_mode = 1
 
     function Game() {
       var player
       var viewport
+      var need_to_restart = false
 
       /* Called once when a game state is activated. Use it for one-time setup code. */
       this.setup = function() {
@@ -60,6 +61,9 @@
 
       /* update() will get called each game tick with your specified FPS. Put game logic here. */
       this.update = function() {
+
+        if (need_to_restart)
+          jaws.start(Game)
 
         // Player Controls
 
@@ -128,7 +132,7 @@
         jaws.on_keydown("r", function() {
           jaws.start(Game)
         })  
-        jaws.on_keydown("enter", function() {
+        jaws.on_keydown(["enter","esc"], function() {
           jaws.start(MenuState)
         })  
 
@@ -436,6 +440,16 @@
             var this_stack = this.stacks[rand_stack]
             if (this_stack.items.length >= level + 3) {
               console.log("top of stack reached")
+
+              // make sure that stacks don't contain matches
+              for(var s=0; s < player.board.stacks.length; s++) {
+                var this_stack = player.board.stacks[s]
+                if (this_stack.checkForMatches()) {
+                  // will restart at the beginning of this.update()
+                  need_to_restart = true
+                }  
+              }
+
               continue
             }
             var item_top = items_array.pop()
@@ -445,7 +459,7 @@
               new Item(this_stack,item_top[0],item_top[1],rand_stack,this_stack.items.length)
             )
 
-          } 
+          }
 
           console.log("block_count = " + this.block_count)
           console.log("flask_count = " + this.flask_count)
@@ -691,6 +705,8 @@
         //   this.items.push(new Item(this,0,Math.floor(Math.random()*13),x,i))
         // }
 
+        // check if the stack contains matches (3 or more consecutive blocks of same color)
+        // return true if matches are found
         this.checkForMatches = function() {
 
           var match_found = false
@@ -749,13 +765,13 @@
             match.breaking = true
             match.chain += 1
 
-            // ensure that all matches have same chain
+            // update chain
             if (match.chain > chain) chain = match.chain
             match.chain = chain
 
           }
 
-          // update chains
+          // ensure that all matches have same chain
           this.setChain(matches,chain)
 
           console.log("breaking with chain = " + chain)
