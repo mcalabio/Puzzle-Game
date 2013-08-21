@@ -461,6 +461,14 @@
 
           }
 
+          // check if there are 5 blocks of some color
+          for(var c=0; c < COLORS.length; c++) {
+            if(this.block_count[c] == 5) {
+              console.log("5 blocks of color(" + COLORS[c] + ") found. Resetting board.")
+              need_to_restart = true
+            }
+          }
+
           console.log("block_count = " + this.block_count)
           console.log("flask_count = " + this.flask_count)
           console.log("robot_count = " + this.robot_count)
