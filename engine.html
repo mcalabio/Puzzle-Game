@@ -587,6 +587,16 @@
             var this_stack = this.stacks[rand_stack]
             if (this_stack.items.length >= level + 3) {
               console.log("top of stack reached")
+
+              // make sure that stacks don't contain matches
+              for(var s=0; s < player.board.stacks.length; s++) {
+                var this_stack = player.board.stacks[s]
+                if (this_stack.checkForMatches()) {
+                  // will restart at the beginning of this.update()
+                  need_to_restart = true
+                }  
+              }
+
               continue
             }
             var item_top = items_array.pop()
@@ -597,6 +607,14 @@
             )
 
           } 
+
+          // check if there are 5 blocks of some color
+          for(var c=0; c < COLORS.length; c++) {
+            if(this.block_count[c] == 5) {
+              console.log("5 blocks of color(" + COLORS[c] + ") found. Resetting board.")
+              need_to_restart = true
+            }
+          }
 
           console.log("block_count = " + this.block_count)
           console.log("flask_count = " + this.flask_count)
