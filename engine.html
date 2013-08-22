@@ -382,7 +382,7 @@
             }
 
             // put at least one flask for each color
-            items_array.push([1,6])
+            items_array.push([1,WHITE])
 
             // put at least three blocks for each color
             items_array.push([0,c])
@@ -409,8 +409,8 @@
               
             }
             else {
-              items_array.push([1,EMPTY])
-              console.log("color(" + EMPTY + ")")
+              items_array.push([1,WHITE])
+              console.log("color(" + WHITE + ")")
             }
 
 
@@ -899,6 +899,9 @@
 
         }
 
+        // Stack .update() updates each item in the stack
+        // update animations, counters, and chains
+        // remove items if their death counters set off
         this.update = function() {
 
           // make sure to break flask last or the game will think lose condition is met
@@ -956,30 +959,12 @@
             // skip items on player hand
             if (item.stack != player.hand && !item.breaking) {
 
-              // update empty flasks
-              if (item.type == 1 && item.color == EMPTY) {
+              // update flasks
+              if (item.type == 1) {
 
-                // check if blocks are breaking above
-                // fill flask with potion of that color
-                if (above != undefined) {
-                    if (above.breaking && above.type == 0) {
+                item.updateFlask(above)
 
-                      // fill up the flask with potion of breaking color
-                      item.color = above.color
-                      item.sleepcounter = 40
-                      console.log("sleepcounter = " + item.sleepcounter)
-
-                      // update sprite data
-                      item.sprite = new jaws.Sprite({x:this.board.posx(above.x),y:this.board.posy(above.y - 1), image:"images/POTION_" + COLORS[above.color] + ".gif",anchor:"left"})
-                      item.sprite.dx = this.board.posx(above.x)
-                      item.sprite.dy = this.board.posy(above.y - 1)
-
-                      // update board count
-                      this.board.flask_count[EMPTY]--
-                      this.board.flask_count[above.color]++
-                    }
-                  }
-                }
+              }
 
               // update robots
               else if (item.type == 2) {
@@ -1047,7 +1032,6 @@
 
                   }
                 }
-
               }
             }
           }
@@ -1073,11 +1057,11 @@
         this.stack = stack
         this.type = type
         this.color = color
-        if (color == EMPTY) this.type = 1
-        else if (color > WHITE) {
-          this.type = 2
-          this.color = color - 7
-        }
+        // if (color == EMPTY) this.type = 1
+        // else if (color > WHITE) {
+        //   this.type = 2
+        //   this.color = color - 7
+        // }
         this.x = x             // x position on the board
         this.y = y             // y position on the board
         this.breaking = false
@@ -1117,6 +1101,63 @@
 
           return false
 
+        }
+
+        // update all flask items, called by Stack's .update()
+        // above: the item above this flask, if any
+        this.updateFlask = function(above) {
+
+          // sanity check
+          if (this.type != 1) return
+
+          // check if blocks are breaking above
+          // fill flask with potion of that color
+          if (above != undefined) {
+            if (above.breaking && above.type == 0) {
+
+              // fill up the flask with potion of breaking color
+              // only if the flask is not empty
+              if (this.color == WHITE) {
+                this.color = above.color 
+                this.sleepcounter = 40
+                console.log("sleepcounter = " + this.sleepcounter)
+
+                // update sprite data
+                this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), image:"images/POTION_" + COLORS[above.color] + ".gif",anchor:"left"})
+                this.sprite.dx = this.stack.board.posx(above.x)
+                this.sprite.dy = this.stack.board.posy(above.y - 1)
+
+                // update board count
+                this.stack.board.flask_count[WHITE]--
+                this.stack.board.flask_count[above.color]++
+
+              // only accept white blocks above if empty
+              // break if other colors brewed
+              } else if (this.color == EMPTY) {
+
+                if (above.color == WHITE) {
+
+                  this.color = above.color 
+                  this.sleepcounter = 40
+                  console.log("sleepcounter = " + this.sleepcounter)
+
+                  // update sprite data
+                  this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), image:"images/POTION_" + COLORS[above.color] + ".gif",anchor:"left"})
+                  this.sprite.dx = this.stack.board.posx(above.x)
+                  this.sprite.dy = this.stack.board.posy(above.y - 1)
+
+                  // update board count
+                  this.stack.board.flask_count[EMPTY]--
+                  this.stack.board.flask_count[above.color]++
+
+                } else {
+                  this.stack.removeItem(this)
+                }
+
+              }
+
+            }
+          }
         }
 
         // player name and timer
