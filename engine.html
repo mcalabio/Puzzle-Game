@@ -49,8 +49,7 @@
 
         player = new Player(3,0)
 
-        if(game_mode == 1)player.board.fill_1(player_level,player_stage)
-        else if(game_mode == 2)player.board.fill_2(player_level,player_stage)
+        player.board.fill(player_level,player_stage)
 
         console.log("setup game")
         console.log("player_name = " + player_name)
@@ -337,7 +336,7 @@
         this.robot_count = [0,0,0,0,0,0]
 
         // fill up the board with items depending on level-stage
-        this.fill_1 = function(level,stage) {
+        this.fill = function(level,stage) {
 
           console.log("Setting up level " + level + "-" + stage + ".")
 
@@ -382,13 +381,22 @@
               if (items_array.length >= total_robots) break
             }
 
-            // put at least one flask for each color
-            items_array.push([1,WHITE])
+            // put at least one flask for each color, fill up flasks with white for mode: 1
+            items_array.push([1, (game_mode == 1) ? WHITE : EMPTY])
 
             // put at least three blocks for each color
             items_array.push([0,c])
             items_array.push([0,c])
             items_array.push([0,c])
+
+            // for mode: 2
+            if (game_mode == 2) {
+              // put at least three white blocks for each color
+              items_array.push([0,WHITE])
+              items_array.push([0,WHITE])
+              items_array.push([0,WHITE])
+            }
+
           }
 
           console.log("item_count = " + items_array.length)
@@ -528,18 +536,12 @@
             items_array.push([0,c])
             items_array.push([0,c])
 
-            // put at least three white blocks for each color
-            items_array.push([0,WHITE])
-            items_array.push([0,WHITE])
-            items_array.push([0,WHITE])
           }
 
           console.log("item_count = " + items_array.length)
 
           // fill up with random blocks and flasks until total_blocks reached
           while (items_array.length < total_blocks) {
-
-            console.log("inserting random block")
 
             var rand_color = Math.floor(Math.random()*7)
 
@@ -605,7 +607,7 @@
               need_to_restart = true
             }  
           }
-              
+
           // check if there are 5 blocks of some color
           for(var c=0; c < COLORS.length; c++) {
             if(this.block_count[c] == 5) {
