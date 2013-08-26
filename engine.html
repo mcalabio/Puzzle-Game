@@ -331,8 +331,8 @@
         this.stacks = new Array()
         this.board = new jaws.Sprite({x:ITEM_WIDTH,y:ITEM_WIDTH,image:"images/BOARD.gif",anchor:"left"})
 
-        this.block_count = [0,0,0,0,0,0,0]
-        this.flask_count = [0,0,0,0,0,0,0,0]
+        this.block_count = [0,0,0,0,0,0,0,0]
+        this.flask_count = [0,0,0,0,0,0,0,0,0]
         this.robot_count = [0,0,0,0,0,0]
 
         // fill up the board with items depending on level-stage
@@ -662,6 +662,16 @@
             }
           }
 
+          // check for necessary amount of white blocks
+          var potential_white_potions = this.block_count[WHITE] / 3
+          // window.alert ("checking for lose condition with potential_white_potions = " + potential_white_potions)
+          if (potential_white_potions < this.flask_count[EMPTY]) {
+                console.log("lose! Not enough white blocks to clear robots.")
+                window.alert("You lose! (" + this.player.timer.clock_text + ")\n(loser!)")
+                jaws.start(Game)
+          }
+
+
         }
 
         // check for items of specified type,color that are breaking
@@ -855,16 +865,11 @@
             this.board.robot_count[old_item.color]--
           }
 
-
-          console.log("block_count = " + this.board.block_count)
-          console.log("flask_count = " + this.board.flask_count)
-          console.log("robot_count = " + this.board.robot_count)
-
           // check for win/lose only when blocks and robots are broken since flasks break first
           // but only check when items aren't breaking
           if (!old_item.stack.itemsBreaking()) {
             if (old_item.type == 0 || old_item.type == 1) {
-              if (old_item.color != WHITE)
+              // if (old_item.color != WHITE)
                 this.board.checkWinLose() // check for win/lose conditions
             } else if (old_item.type == 2) {
               // make sure that there are no other robots in the process of being removed
@@ -880,6 +885,10 @@
 
             }
           }
+
+          console.log("block_count = " + this.board.block_count)
+          console.log("flask_count = " + this.board.flask_count)
+          console.log("robot_count = " + this.board.robot_count)
 
           this.checkForMatches()
 
@@ -1187,6 +1196,7 @@
                   this.stack.board.flask_count[EMPTY]--
                   this.stack.board.flask_count[above.color]++
 
+                // melting colored blocks over empty flask creates an unstable reaction
                 } else {
                   this.color = UNSTABLE
                   this.breaking = true 
@@ -1203,7 +1213,7 @@
 
                   // update board count
                   this.stack.board.flask_count[EMPTY]--
-                  this.stack.board.flask_count[above.color]++
+                  this.stack.board.flask_count[this.color]++
                 }
 
               }
