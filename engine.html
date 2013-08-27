@@ -782,7 +782,31 @@
         this.clearRobotsFlasks = function(robots_to_clear,flasks_to_clear) {
 
           for (var r = 0; r < robots_to_clear.length; r++) {
-            robots_to_clear[r].breaking = true
+
+            var this_robot = robots_to_clear[r]
+
+            this_robot.breaking = true
+
+            // determine which sprites to use
+            var death_color = "RED"
+            if (this_robot.color == 1 || this_robot.color == 3)
+              death_color = "YELLOW"
+            else if (this_robot.color == 4 || this_robot.color == 5)
+              death_color = "PURPLE"
+
+            // update sprite data
+            this_robot.sprite = new jaws.Sprite({x:this_robot.stack.board.posx(this_robot.x), y:this_robot.stack.board.posy(this_robot.y), anchor: "left"})
+            var anim = new jaws.Animation({sprite_sheet: "images/ROBOT_" + death_color + "_DEATH.gif", frame_size: [40,40], frame_duration: 20})
+            this_robot.sprite.anim_default = anim.slice(0,6)
+
+            var rand_color = Math.floor(Math.random()*WHITE)
+            window.alert ("rand_color = " + rand_color)
+            for (var c=0; c < rand_color; c++)
+              this_robot.sprite.setImage(this_robot.sprite.anim_default.next())
+
+            this_robot.sprite.dx = this_robot.stack.board.posx(this_robot.x)
+            this_robot.sprite.dy = this_robot.stack.board.posy(this_robot.y)
+
           }
 
           for (var f = 0; f < flasks_to_clear.length; f++) {
@@ -808,8 +832,6 @@
         // remove items if their death counters set off
         this.update = function() {
 
-          console.log("loop")
-
           // make sure to break flask last or the game will think lose condition is met
           // put flasks and robots to break into respective arrays
           var flasks_to_clear = new Array()
@@ -830,7 +852,7 @@
             if (item.breaking) {
 
               // breaking animation
-              if (item.type != 1) {
+              if (item.type == 0) {
                 if (item.sprite.width > 1) {
                   item.sprite.scaleWidth(.5)
                   item.sprite.dx += item.sprite.width / 2
@@ -839,7 +861,7 @@
                   item.sprite.scaleWidth(2)
                 }
 
-              // animate breaking flasks
+              // animate breaking flasks and robots
               } else {
                 item.sprite.setImage(item.sprite.anim_default.next())
               }
@@ -1024,8 +1046,6 @@
         // update all flask items, called by Stack's .update()
         // above: the item above this flask, if any
         this.updateFlask = function(above) {
-
-          console.log("updateFlask")
 
           // sanity check
           if (this.type != 1) return
@@ -1248,7 +1268,7 @@
       console.log("TODO: update breaking condition ")
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
-      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/POTION_SPRITES.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif"])
+      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/POTION_SPRITES.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif","images/ROBOT_RED_DEATH.gif","images/ROBOT_YELLOW_DEATH.gif","images/ROBOT_PURPLE_DEATH.gif"])
       jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
     }
 

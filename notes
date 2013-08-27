@@ -1,5 +1,9 @@
 
 
+BUGS: win/lose conditions
+- used last red potion when red robots still exist
+- only flask remaining is yellow potion, along with yellow robot
+
 To destroy robots, should just have robots in same stack as flasks.  Flask doesn't have to fall from above.
 
 Have cursor encompass all that is being held in hand
