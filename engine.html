@@ -22,10 +22,27 @@
     var BOARD_WIDTH = 6
     var BOARD_HEIGHT = 10
     var ITEM_WIDTH = 40
+
+
     var COLORS = new Array("RED","GREEN","BLUE","YELLOW","PURPLE","ORANGE","EMPTY","WHITE","UNSTABLE")
+    var RED = 0
+    var GREEN = 1
+    var BLUE = 2
+    var YELLOW = 3
     var UNSTABLE = COLORS.length - 1
     var WHITE = COLORS.length - 2
     var EMPTY = COLORS.length - 3
+
+    var COLOR = {
+      RED : 0,
+      GREEN : 1,
+      BLUE : 2,
+      YELLOW : 3,
+      PURPLE : 4,
+      ORANGE : 5,
+      EMPTY : 6,
+      WHITE : 7
+    }
 
     // GLOBALS
     var player_name = "Player 1"
@@ -334,6 +351,8 @@
         this.block_count = [0,0,0,0,0,0,0,0]
         this.flask_count = [0,0,0,0,0,0,0,0,0]
         this.robot_count = [0,0,0,0,0,0]
+
+        this.effects = new Array()
 
         // fill up the board with items depending on level-stage
         this.fill = function(level,stage) {
@@ -752,6 +771,8 @@
             }
           }
 
+          // add splashes
+
           console.log("block_count = " + this.board.block_count)
           console.log("flask_count = " + this.board.flask_count)
           console.log("robot_count = " + this.board.robot_count)
@@ -800,7 +821,6 @@
             this_robot.sprite.anim_default = anim.slice(0,6)
 
             var rand_color = Math.floor(Math.random()*WHITE)
-            window.alert ("rand_color = " + rand_color)
             for (var c=0; c < rand_color; c++)
               this_robot.sprite.setImage(this_robot.sprite.anim_default.next())
 
@@ -817,7 +837,7 @@
 
             // update sprite data       
             this_flask.sprite = new jaws.Sprite({x:this_flask.stack.board.posx(this_flask.x),y:this_flask.stack.board.posy(this_flask.y), anchor: "left"})
-            var anim = new jaws.Animation({sprite_sheet: "images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20})
+            var anim = new jaws.Animation({sprite_sheet: "images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20 + Math.floor(Math.random()*((60-20) + 1))})
             this_flask.sprite.anim_default = anim.slice(0,6)
 
             this_flask.sprite.dx = this_flask.stack.board.posx(this_flask.x)
@@ -1129,6 +1149,39 @@
         }
       }
 
+      /* Constructor for Splashes */
+      function Splash(stack,type,color,x,y) {
+
+        this.stack = stack
+        this.type = type
+        this.color = color
+        this.x = x
+        this.y = y
+
+        // set appropriate sprite for this Splash
+        if (this.type == 1) {
+          this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y), image:"images/POTION_" + COLORS[color] + ".gif",anchor:"left"})
+        }
+        else if (this.type == 2) {
+          this.sprite_sheet = new jaws.SpriteSheet({
+            image: "images/ROBOT_RED_DEATH.gif", frame_size: [20,20]})
+
+          this.sprite1 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y), image: this.sprite_sheet.frames[0]})
+          this.sprite2 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y), image: this.sprite_sheet.frames[1]})
+          this.sprite3 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[2]})
+          this.sprite4 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[3]})
+
+        }
+        this.sprite1.dx = this.stack.board.posx(x)
+        this.sprite1.dy = this.stack.board.posy(y)
+        this.sprite2.dx = this.stack.board.posx(x)
+        this.sprite2.dy = this.stack.board.posy(y)
+        this.sprite3.dx = this.stack.board.posx(x)
+        this.sprite3.dy = this.stack.board.posy(y)
+        this.sprite4.dx = this.stack.board.posx(x)
+        this.sprite4.dy = this.stack.board.posy(y)
+      }
+
       function Timer(player) {
 
         this.player = player
@@ -1268,7 +1321,7 @@
       console.log("TODO: update breaking condition ")
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
-      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/POTION_SPRITES.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif","images/ROBOT_RED_DEATH.gif","images/ROBOT_YELLOW_DEATH.gif","images/ROBOT_PURPLE_DEATH.gif"])
+      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/POTION_SPRITES.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif","images/ROBOT_RED_DEATH.gif","images/ROBOT_YELLOW_DEATH.gif","images/ROBOT_PURPLE_DEATH.gif","images/ROBOT_RED_SPLASH.gif"])
       jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
     }
 
