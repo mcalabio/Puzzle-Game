@@ -46,10 +46,10 @@
 
     // GLOBALS
     var player_name = "Player 1"
-    var player_level = 3
-    var player_stage = 6
+    var player_level = 1
+    var player_stage = 3
     var control_scheme = 1
-    var game_mode = 2
+    var game_mode = 1
 
     function Game() {
       var player
@@ -578,17 +578,25 @@
 
         }
 
-        // update all stacks in this board
+        // update all stacks and effects in this board
         this.update = function() {
-          for (var i=0; i<this.stacks.length; i++) {
-            this.stacks[i].update()
+
+          // update stacks
+          for (var s=0; s<this.stacks.length; s++) {
+            this.stacks[s].update()
+          }
+
+          // update effects
+          for (var e=0; e<this.effects.length; e++) {
+            this.effects[e].update()
           }
         }
 
-        // draw all stacks on this board
+        // draw all stacks and effects on this board
         this.draw = function() {
           jaws.context.drawImage(jaws.assets.get("images/BOARD.gif"), this.board.x, this.board.y )
 
+          // draw all stacks in this board and containing items
           for (var i=0; i < this.stacks.length; i++) {
             this.stacks[i].draw()
           }
@@ -604,6 +612,11 @@
           jaws.context.fillStyle =  "Black"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
           jaws.context.fillText(this.player.timer.clock_text, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 75)
+
+          // draw all effects on this board
+          for (var e=0; e < this.effects.length; e++) {
+            this.effects[e].draw()
+          }
           
         }
 
@@ -772,6 +785,8 @@
           }
 
           // add splashes
+          if (old_item.type != 0)
+            this.board.effects.push(new Splash(this,old_item.type,old_item.color,old_item.x,old_item.y))
 
           console.log("block_count = " + this.board.block_count)
           console.log("flask_count = " + this.board.flask_count)
@@ -1152,6 +1167,8 @@
       /* Constructor for Splashes */
       function Splash(stack,type,color,x,y) {
 
+        console.log("adding splash")
+
         this.stack = stack
         this.type = type
         this.color = color
@@ -1159,27 +1176,62 @@
         this.y = y
 
         // set appropriate sprite for this Splash
-        if (this.type == 1) {
-          this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y), image:"images/POTION_" + COLORS[color] + ".gif",anchor:"left"})
-        }
-        else if (this.type == 2) {
-          this.sprite_sheet = new jaws.SpriteSheet({
-            image: "images/ROBOT_RED_DEATH.gif", frame_size: [20,20]})
 
-          this.sprite1 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y), image: this.sprite_sheet.frames[0]})
-          this.sprite2 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y), image: this.sprite_sheet.frames[1]})
-          this.sprite3 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[2]})
-          this.sprite4 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[3]})
+        this.sprite_sheet = new jaws.SpriteSheet({
+          image: "images/ROBOT_RED_SPLASH.gif", frame_size: [20,20]})
+
+        this.sprite1 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y), image: this.sprite_sheet.frames[0]})
+        this.sprite2 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y), image: this.sprite_sheet.frames[1]})
+        this.sprite3 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[2]})
+        this.sprite4 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[3]})
+
+        this.initSprite = function(sprite, splash) {
+
+          sprite.x0 = sprite.dx = this.stack.board.posx(splash.x)
+          sprite.y0 = sprite.dy = this.stack.board.posy(splash.y)
+          sprite.t = 0
 
         }
-        this.sprite1.dx = this.stack.board.posx(x)
-        this.sprite1.dy = this.stack.board.posy(y)
-        this.sprite2.dx = this.stack.board.posx(x)
-        this.sprite2.dy = this.stack.board.posy(y)
-        this.sprite3.dx = this.stack.board.posx(x)
-        this.sprite3.dy = this.stack.board.posy(y)
-        this.sprite4.dx = this.stack.board.posx(x)
-        this.sprite4.dy = this.stack.board.posy(y)
+
+        this.initSprite(this.sprite1, this)
+        this.initSprite(this.sprite2, this)
+        this.initSprite(this.sprite3, this)
+        this.initSprite(this.sprite4, this)
+
+        this.spriteExplode = function(sprite, splash, direction) {
+
+          console.log("spriteExplode")
+          sprite.t += 3
+          sprite.dy = sprite.y0 + .1 * sprite.t * sprite.t - 4 * sprite.t
+          sprite.dx = sprite.x0 + (direction) * sprite.t
+
+        }
+        
+        this.update = function() {
+
+          console.log ("updating splash sprites")
+          this.spriteExplode(this.sprite1, this, -1)
+          this.spriteExplode(this.sprite2, this, 1)
+          this.spriteExplode(this.sprite3, this, -1)
+          this.spriteExplode(this.sprite4, this, 1)
+
+          // update splash sprite positions
+          spriteMove(this.sprite1,X_SPEED,Y_SPEED)
+          spriteMove(this.sprite2,X_SPEED,Y_SPEED)
+          spriteMove(this.sprite3,X_SPEED,Y_SPEED)
+          spriteMove(this.sprite4,X_SPEED,Y_SPEED)
+          
+        }
+
+        this.draw = function() {
+
+          this.sprite1.draw()
+          this.sprite2.draw()
+          this.sprite3.draw()
+          this.sprite4.draw()
+
+        }
+
       }
 
       function Timer(player) {
