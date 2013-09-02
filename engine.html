@@ -515,14 +515,28 @@
             window.alert("You win!\n" + 
               player_level + " - " + player_stage + " (" + this.player.timer.clock_text + ")\n" 
               + "\nMake Mark write it down.")
-            if (player_stage < 6) {
-              player_stage++
-            } else {
-              if (player_level < 6) {
+            if (player_level == 1) {
+              if (player_stage == 6) {
                 player_level++
                 player_stage = 1
+              } else {
+                player_stage++
               }
+            } else if (player_level == 6){
+              if (player_stage == 1) {
+                player_stage = 6
+              }
+            } else {
+              player_level++
             }
+            // if (player_stage < 6) {
+            //   player_stage++
+            // } else {
+            //   if (player_level < 6) {
+            //     player_level++
+            //     player_stage = 1
+            //   }
+            // }
             jaws.start(MenuState)
           }
 
