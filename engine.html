@@ -799,8 +799,8 @@
           }
 
           // add splashes
-          if (old_item.type != 0)
-            this.board.effects.push(new Splash(this,old_item.type,old_item.color,old_item.x,old_item.y))
+          // if (old_item.type != 0)
+          //   this.board.effects.push(new Splash(this,old_item.type,old_item.color,old_item.x,old_item.y,0))
 
           console.log("block_count = " + this.board.block_count)
           console.log("flask_count = " + this.board.flask_count)
@@ -836,6 +836,10 @@
             var this_robot = robots_to_clear[r]
 
             this_robot.breaking = true
+
+            // will put splashes here
+            var robot_delay = this_robot.deathcounter + this_robot.splash_order
+            this.board.effects.push(new Splash(this,this_robot.type,this_robot.color,this_robot.x,this_robot.y,robot_delay))
 
             // determine which sprites to use
             var death_color = "RED"
@@ -975,8 +979,9 @@
 
                     above.chain += 1
                     item.chain += above.chain
+                    item.splash_order = above.splash_order + 1
 
-                    console.log("(" + above.color + ") flask breaking robot of color (" + item.color + ") with chain = " + item.chain)
+                    console.log("(" + above.color + ") flask breaking robot of color (" + item.color + ") with chain = " + item.chain + " and splash_order = " + item.splash_order)
 
                   // break if robot above is breaking
                   } else if (above.type == 2 && above.color == item.color && above.breaking) {
@@ -986,8 +991,9 @@
                     robots_to_clear.push(item)
 
                     item.chain = above.chain
+                    item.splash_order = above.splash_order + 1
 
-                    console.log("robot combo of color (" + item.color + ") with chain = " + item.chain)
+                    console.log("robot combo of color (" + item.color + ") with chain = " + item.chain + " and splash_order = " + item.splash_order)
 
                   }
                 }
@@ -1005,8 +1011,9 @@
 
                     below.chain += 1
                     item.chain += below.chain
+                    item.splash_order = below.splash_order + 1
 
-                    console.log("(" + below.color + ") flask breaking robot of color (" + item.color + ") with chain = " + item.chain)
+                    console.log("(" + below.color + ") flask breaking robot of color (" + item.color + ") with chain = " + item.chain + " and splash_order = " + item.splash_order)
 
                   // break if robot below is breaking
                   } else if (below.type == 2 && below.color == item.color && below.breaking) {
@@ -1016,8 +1023,9 @@
                     robots_to_clear.push(item)
 
                     item.chain = below.chain
+                    item.splash_order = below.splash_order + 1
 
-                    console.log("robot combo of color (" + item.color + ") with chain = " + item.chain)
+                    console.log("robot combo of color (" + item.color + ") with chain = " + item.chain + " and splash_order = " + item.splash_order)
 
                   }
                 }
@@ -1058,6 +1066,7 @@
         this.sleepcounter = 0  // used for transitory animations
                                // (eg: potion filling up, items exploding, etc.)
         this.chain = 0
+        this.splash_order = 0
 
         var board = stack.board
 
@@ -1179,15 +1188,16 @@
       }
 
       /* Constructor for Splashes */
-      function Splash(stack,type,color,x,y) {
+      function Splash(stack,type,color,x,y,delay) {
 
-        console.log("adding splash")
+        // console.log("adding splash")
 
-        this.stack = stack
-        this.type = type
-        this.color = color
-        this.x = x
+        this.stack = stack // the stack this splash comes from
+        this.type = type   // type of the item destroyed
+        this.color = color // color of the item destroyed
+        this.x = x         
         this.y = y
+        this.delay = delay // delay animation until counter goes to 0
 
         // set appropriate sprite for this Splash
 
@@ -1217,7 +1227,7 @@
 
         this.spriteExplode = function(sprite, splash, direction) {
 
-          console.log("spriteExplode")
+          // console.log("spriteExplode")
           sprite.t += 3
           sprite.dy = sprite.y0 + .1 * sprite.t * sprite.t - 4 * sprite.t
           sprite.dx = sprite.x0 + (direction) * sprite.t
@@ -1226,21 +1236,28 @@
         
         this.update = function() {
 
-          console.log ("updating splash sprites")
-          this.spriteExplode(this.sprite1, this, -1)
-          this.spriteExplode(this.sprite2, this, 1)
-          this.spriteExplode(this.sprite3, this, -.5)
-          this.spriteExplode(this.sprite4, this, .5)
+          if (this.delay <= 0) {
+            // console.log ("updating splash sprites")
+            this.spriteExplode(this.sprite1, this, -1)
+            this.spriteExplode(this.sprite2, this, 1)
+            this.spriteExplode(this.sprite3, this, -.5)
+            this.spriteExplode(this.sprite4, this, .5)
 
-          // update splash sprite positions
-          spriteMove(this.sprite1,X_SPEED,Y_SPEED)
-          spriteMove(this.sprite2,X_SPEED,Y_SPEED)
-          spriteMove(this.sprite3,X_SPEED,Y_SPEED)
-          spriteMove(this.sprite4,X_SPEED,Y_SPEED)
+            // update splash sprite positions
+            spriteMove(this.sprite1,X_SPEED,Y_SPEED)
+            spriteMove(this.sprite2,X_SPEED,Y_SPEED)
+            spriteMove(this.sprite3,X_SPEED,Y_SPEED)
+            spriteMove(this.sprite4,X_SPEED,Y_SPEED)
+          } else {
+            this.delay--
+          }
           
         }
 
         this.draw = function() {
+
+          if (this.delay > 0)
+            return
 
           this.sprite1.draw()
           this.sprite2.draw()
