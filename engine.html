@@ -1192,7 +1192,7 @@
         // set appropriate sprite for this Splash
 
         this.sprite_sheet = new jaws.SpriteSheet({
-          image: "images/ROBOT_RED_SPLASH.gif", frame_size: [20,20]})
+          image: "images/ROBOT_" + COLORS[color] + "_SPLASH.gif", frame_size: [20,20]})
 
         this.sprite1 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y), image: this.sprite_sheet.frames[0]})
         this.sprite2 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y), image: this.sprite_sheet.frames[1]})
@@ -1390,7 +1390,7 @@
       console.log("TODO: update breaking condition ")
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
-      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/POTION_SPRITES.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif","images/ROBOT_RED_DEATH.gif","images/ROBOT_YELLOW_DEATH.gif","images/ROBOT_PURPLE_DEATH.gif","images/ROBOT_RED_SPLASH.gif"])
+      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/POTION_SPRITES.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif","images/ROBOT_RED_DEATH.gif","images/ROBOT_YELLOW_DEATH.gif","images/ROBOT_PURPLE_DEATH.gif","images/ROBOT_RED_SPLASH.gif","images/ROBOT_BLUE_SPLASH.gif","images/ROBOT_YELLOW_SPLASH.gif","images/ROBOT_GREEN_SPLASH.gif","images/ROBOT_PURPLE_SPLASH.gif","images/ROBOT_ORANGE_SPLASH.gif"])
       jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
     }
 
