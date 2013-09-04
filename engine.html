@@ -47,7 +47,7 @@
     // GLOBALS
     var player_name = "Player 1"
     var player_level = 1
-    var player_stage = 3
+    var player_stage = 1
     var control_scheme = 1
     var game_mode = 1
 
@@ -1199,18 +1199,21 @@
         this.sprite3 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[2]})
         this.sprite4 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y)+20, image: this.sprite_sheet.frames[3]})
 
-        this.initSprite = function(sprite, splash) {
+        this.initSprite = function(sprite, splash, x_offset, y_offset) {
 
-          sprite.x0 = sprite.dx = this.stack.board.posx(splash.x)
-          sprite.y0 = sprite.dy = this.stack.board.posy(splash.y)
+          x_offset = typeof x_offset !== 'undefined' ? x_offset : 0;
+          y_offset = typeof y_offset !== 'undefined' ? y_offset : 0;
+
+          sprite.x0 = sprite.dx = this.stack.board.posx(splash.x) + x_offset
+          sprite.y0 = sprite.dy = this.stack.board.posy(splash.y) + y_offset
           sprite.t = 0
 
         }
 
         this.initSprite(this.sprite1, this)
-        this.initSprite(this.sprite2, this)
-        this.initSprite(this.sprite3, this)
-        this.initSprite(this.sprite4, this)
+        this.initSprite(this.sprite2, this, 20)
+        this.initSprite(this.sprite3, this, 0, 20)
+        this.initSprite(this.sprite4, this, 20, 20)
 
         this.spriteExplode = function(sprite, splash, direction) {
 
@@ -1226,8 +1229,8 @@
           console.log ("updating splash sprites")
           this.spriteExplode(this.sprite1, this, -1)
           this.spriteExplode(this.sprite2, this, 1)
-          this.spriteExplode(this.sprite3, this, -1)
-          this.spriteExplode(this.sprite4, this, 1)
+          this.spriteExplode(this.sprite3, this, -.5)
+          this.spriteExplode(this.sprite4, this, .5)
 
           // update splash sprite positions
           spriteMove(this.sprite1,X_SPEED,Y_SPEED)

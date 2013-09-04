@@ -1,4 +1,34 @@
-
+block_count = 3,0,0,0,0,0,0,3 engine.html:805
+flask_count = 0,1,0,0,0,0,1,0,0 engine.html:806
+robot_count = 2,1,0,0,0,0 engine.html:807
+checking for matches engine.html:662
+player (3 , 4) engine.html:100
+player (3 , 3) engine.html:128
+player (3 , 2) engine.html:128
+player (3 , 1) engine.html:128
+player (3 , 0) engine.html:128
+player (3 , 0) engine.html:128
+player (4 , 0) engine.html:115
+checking for matches engine.html:662
+(1) flask breaking robot of color (1) with chain = 1 engine.html:1009
+removing (1) of color (1) engine.html:759
+checking win condition engine.html:513
+checking lose conditions engine.html:544
+robots of color RED still exist! engine.html:547
+block count = 3 engine.html:548
+flask_count = 0 engine.html:549
+robots of color GREEN still exist! engine.html:547
+block count = 0 engine.html:548
+flask_count = 0 engine.html:549
+lose! engine.html:552
+adding splash engine.html:1184
+block_count = 3,0,0,0,0,0,0,3 engine.html:805
+flask_count = 0,0,0,0,0,0,1,0,0 engine.html:806
+robot_count = 2,1,0,0,0,0 engine.html:807
+checking for matches engine.html:662
+updating splash sprites engine.html:1226
+4
+spriteExplode 
 
 BUGS: win/lose conditions
 - used last red potion when red robots still exist
