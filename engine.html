@@ -1,10 +1,16 @@
+$def with (name)
+
+$if name:
+    I just wanted to say <em>hello</em> to $name.
+$else:
+    <em>Hello</em>, world!
 
 <!DOCTYPE html> 
 <html>
   <head>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
-    <script src="jawsjs/jaws.js"></script>
-    <link type="text/css" rel="stylesheet" href="style.css" />
+    <script src="./static/jawsjs/jaws.js"></script>
+    <link type="text/css" rel="stylesheet" href="./static/style.css" />
     <title>Puzzle Game</title>
   </head>
 <body>
@@ -12,7 +18,6 @@
   <canvas width=600 height=500></canvas>
   Move with arrow keys.
   <div id="live_info"></div>
-  Name: <input type="text" id="player_name_input" value="Player" />
 
   <script>
 
@@ -60,7 +65,6 @@
       this.setup = function() {
         // live_info = document.getElementById("live_info")
         live_info = $("live_info")
-        player_name = $("#player_name_input").val()
 
         viewport = new jaws.Viewport({max_x: 600, max_y: 500})
 
@@ -185,7 +189,7 @@
         this.cursor_speed = X_SPEED
 
         this.sprite_sheet = new jaws.SpriteSheet({
-          image: "images/cursor.gif", frame_size: [40,20]})
+          image: "./static/images/cursor.gif", frame_size: [40,20]})
 
         this.cursor_top = new jaws.Sprite({x:this.board.posx(x), y:this.board.posy(y), image: this.sprite_sheet.frames[0]})
         this.cursor_bottom = new jaws.Sprite({x:this.board.posx(x), y:(this.board.posy(y)+20), image: this.sprite_sheet.frames[1]})
@@ -346,7 +350,7 @@
       function Board(player) {
         this.player = player
         this.stacks = new Array()
-        this.board = new jaws.Sprite({x:ITEM_WIDTH,y:ITEM_WIDTH,image:"images/BOARD.gif",anchor:"left"})
+        this.board = new jaws.Sprite({x:ITEM_WIDTH,y:ITEM_WIDTH,image:"./static/images/BOARD.gif",anchor:"left"})
 
         this.block_count = [0,0,0,0,0,0,0,0]
         this.flask_count = [0,0,0,0,0,0,0,0,0]
@@ -608,7 +612,7 @@
 
         // draw all stacks and effects on this board
         this.draw = function() {
-          jaws.context.drawImage(jaws.assets.get("images/BOARD.gif"), this.board.x, this.board.y )
+          jaws.context.drawImage(jaws.assets.get("./static/images/BOARD.gif"), this.board.x, this.board.y )
 
           // draw all stacks in this board and containing items
           for (var i=0; i < this.stacks.length; i++) {
@@ -850,7 +854,7 @@
 
             // update sprite data
             this_robot.sprite = new jaws.Sprite({x:this_robot.stack.board.posx(this_robot.x), y:this_robot.stack.board.posy(this_robot.y), anchor: "left"})
-            var anim = new jaws.Animation({sprite_sheet: "images/ROBOT_" + death_color + "_DEATH.gif", frame_size: [40,40], frame_duration: 20})
+            var anim = new jaws.Animation({sprite_sheet: "./static/images/ROBOT_" + death_color + "_DEATH.gif", frame_size: [40,40], frame_duration: 20})
             this_robot.sprite.anim_default = anim.slice(0,6)
 
             var rand_color = Math.floor(Math.random()*WHITE)
@@ -870,7 +874,7 @@
 
             // update sprite data       
             this_flask.sprite = new jaws.Sprite({x:this_flask.stack.board.posx(this_flask.x),y:this_flask.stack.board.posy(this_flask.y), anchor: "left"})
-            var anim = new jaws.Animation({sprite_sheet: "images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20 + Math.floor(Math.random()*((60-20) + 1))})
+            var anim = new jaws.Animation({sprite_sheet: "./static/images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20 + Math.floor(Math.random()*((60-20) + 1))})
             this_flask.sprite.anim_default = anim.slice(0,6)
 
             this_flask.sprite.dx = this_flask.stack.board.posx(this_flask.x)
@@ -1072,17 +1076,17 @@
 
         // set appropriate sprite for this item
         if (this.type == 0) {
-          this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y),image:"images/" + COLORS[color] + ".gif",anchor:"left"})
+          this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y),image:"./static/images/" + COLORS[color] + ".gif",anchor:"left"})
           board.block_count[color] += 1
         }
         else if (this.type == 1) {
-          this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y), image:"images/POTION_" + COLORS[color] + ".gif",anchor:"left"})
+          this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y), image:"./static/images/POTION_" + COLORS[color] + ".gif",anchor:"left"})
           board.flask_count[color] += 1
         }
         else if (this.type == 2) {
           // create sprite for this robot        
           this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y), anchor: "left"})
-          var anim = new jaws.Animation({sprite_sheet: "images/ROBOT_" + COLORS[this.color] + ".gif", frame_size: [40,40], frame_duration: 100})
+          var anim = new jaws.Animation({sprite_sheet: "./static/images/ROBOT_" + COLORS[this.color] + ".gif", frame_size: [40,40], frame_duration: 100})
           this.sprite.anim_default = anim.slice(0,5)
           board.robot_count[this.color] += 1
         }
@@ -1121,7 +1125,7 @@
                 console.log("sleepcounter = " + this.sleepcounter)
 
                 // update sprite data
-                this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), image:"images/POTION_" + COLORS[above.color] + ".gif",anchor:"left"})
+                this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), image:"./static/images/POTION_" + COLORS[above.color] + ".gif",anchor:"left"})
                 this.sprite.dx = this.stack.board.posx(above.x)
                 this.sprite.dy = this.stack.board.posy(above.y - 1)
 
@@ -1140,7 +1144,7 @@
                   console.log("sleepcounter = " + this.sleepcounter)
 
                   // update sprite data
-                  this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), image:"images/POTION_" + COLORS[above.color] + ".gif",anchor:"left"})
+                  this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), image:"./static/images/POTION_" + COLORS[above.color] + ".gif",anchor:"left"})
                   this.sprite.dx = this.stack.board.posx(above.x)
                   this.sprite.dy = this.stack.board.posy(above.y - 1)
 
@@ -1163,7 +1167,7 @@
 
                   // update sprite data       
                   this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), anchor: "left"})
-                  var anim = new jaws.Animation({sprite_sheet: "images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20})
+                  var anim = new jaws.Animation({sprite_sheet: "./static/images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20})
                   this.sprite.anim_default = anim.slice(0,6)
 
                   this.sprite.dx = this.stack.board.posx(above.x)
@@ -1202,7 +1206,7 @@
         // set appropriate sprite for this Splash
 
         this.sprite_sheet = new jaws.SpriteSheet({
-          image: "images/ROBOT_" + COLORS[color] + "_SPLASH.gif", frame_size: [20,20]})
+          image: "./static/images/ROBOT_" + COLORS[color] + "_SPLASH.gif", frame_size: [20,20]})
 
         this.sprite1 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y), image: this.sprite_sheet.frames[0]})
         this.sprite2 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y), image: this.sprite_sheet.frames[1]})
@@ -1407,7 +1411,7 @@
       console.log("TODO: update breaking condition ")
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
-      jaws.assets.add(["images/cursor.gif","images/BOARD.gif","images/BLUE.gif","images/GREEN.gif","images/RED.gif","images/YELLOW.gif","images/PURPLE.gif","images/WHITE.gif","images/ORANGE.gif","images/POTION_EMPTY.gif","images/POTION_BLUE.gif","images/POTION_GREEN.gif","images/POTION_RED.gif","images/POTION_YELLOW.gif","images/POTION_PURPLE.gif","images/POTION_WHITE.gif","images/POTION_ORANGE.gif","images/POTION_SPRITES.gif","images/ROBOT_RED.gif","images/ROBOT_WHITE.gif","images/ROBOT_YELLOW.gif","images/ROBOT_PURPLE.gif","images/ROBOT_GREEN.gif","images/ROBOT_BLUE.gif","images/ROBOT_ORANGE.gif","images/ROBOT_RED_DEATH.gif","images/ROBOT_YELLOW_DEATH.gif","images/ROBOT_PURPLE_DEATH.gif","images/ROBOT_RED_SPLASH.gif","images/ROBOT_BLUE_SPLASH.gif","images/ROBOT_YELLOW_SPLASH.gif","images/ROBOT_GREEN_SPLASH.gif","images/ROBOT_PURPLE_SPLASH.gif","images/ROBOT_ORANGE_SPLASH.gif"])
+      jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/BOARD.gif"])
       jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
     }
 
