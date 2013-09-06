@@ -50,7 +50,7 @@ $else:
     }
 
     // GLOBALS
-    var player_name = "Player 1"
+    var player_name = "Kris"
     var player_level = 1
     var player_stage = 1
     var control_scheme = 1
@@ -516,9 +516,10 @@ $else:
           // win condition: robots cleared
           console.log("checking win condition")
           if (!(this.robot_count<[0,0,0,0,0,0] || [0,0,0,0,0,0]<this.robot_count)) { // array equality
-            window.alert("You win!\n" + 
-              player_level + " - " + player_stage + " (" + this.player.timer.clock_text + ")\n" 
-              + "\nMake Mark write it down.")
+            var record = player_name + " " + player_level + "-" + player_stage  + "-" + 
+              ((game_mode == 1) ? "E" : "H") + " (" + this.player.timer.clock_text + ") W\n"
+            saveRecord(record)
+            window.alert(record)
             if (player_level == 1) {
               if (player_stage == 6) {
                 player_level++
@@ -554,7 +555,10 @@ $else:
               if (this.block_count[c] < 3 && this.flask_count[c] <= 0) {
 
                 console.log("lose!")
-                window.alert("You lose! (" + this.player.timer.clock_text + ")\n(loser!)")
+                var record = player_name + " " + player_level + "-" + player_stage  + "-" + 
+                  ((game_mode == 1) ? "E" : "H") + " (" + this.player.timer.clock_text + ") L\n"
+                saveRecord(record)
+                window.alert(record)
                 jaws.start(Game)
               }
             }
@@ -565,7 +569,10 @@ $else:
           // window.alert ("checking for lose condition with potential_white_potions = " + potential_white_potions)
           if (potential_white_potions < this.flask_count[EMPTY]) {
                 console.log("lose! Not enough white blocks to clear robots.")
-                window.alert("You lose! (" + this.player.timer.clock_text + ")\n(loser!)")
+                var record = player_name + " " + player_level + "-" + player_stage  + "-" + 
+                  ((game_mode == 1) ? "E" : "H") + " (" + this.player.timer.clock_text + ") L\n"
+                saveRecord(record)
+                window.alert(record)
                 jaws.start(Game)
           }
 
@@ -1322,6 +1329,17 @@ $else:
          myArray[i] = myArray[j]; 
          myArray[j] = temp;
        }
+    }
+
+    function saveRecord (record) {
+      console.log("savingRecord()")
+      jQuery.ajax({
+        type: "POST",
+        data: record,
+        success: function(data) {
+          console.log("record POSTed to server")
+          }
+      });
     }
 
     /*

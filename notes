@@ -1,3 +1,15 @@
+//////////
+///TODO///
+//////////
+
+create database for game records
+ - player_name, level-stage, easy/hard, win/lose, time
+
+Player 1-1-E (1:11) W
+
+write to file using python
+
+
 block_count = 3,0,0,0,0,0,0,3 engine.html:805
 flask_count = 0,1,0,0,0,0,1,0,0 engine.html:806
 robot_count = 2,1,0,0,0,0 engine.html:807
@@ -33,10 +45,6 @@ spriteExplode
 BUGS: win/lose conditions
 - used last red potion when red robots still exist
 - only flask remaining is yellow potion, along with yellow robot
-
-To destroy robots, should just have robots in same stack as flasks.  Flask doesn't have to fall from above.
-
-Have cursor encompass all that is being held in hand
 
 Controls
 Directions and action button (K)
