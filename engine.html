@@ -1,10 +1,3 @@
-$def with (name)
-
-$if name:
-    I just wanted to say <em>hello</em> to $name.
-$else:
-    <em>Hello</em>, world!
-
 <!DOCTYPE html> 
 <html>
   <head>
@@ -50,7 +43,8 @@ $else:
     }
 
     // GLOBALS
-    var player_name = "Kris"
+    var name_entered = false
+    var player_name = "Player"
     var player_level = 1
     var player_stage = 1
     var control_scheme = 1
@@ -1387,6 +1381,11 @@ $else:
           jaws.switchGameState(Game) 
         } )
 
+        // name mode
+        jaws.on_keydown(["n"], function() {
+          jaws.switchGameState(PlayerNameState)
+        })
+
         // control mode
         jaws.on_keydown(["c"], function() {
           if(control_scheme == 1) control_scheme = 2
@@ -1410,6 +1409,13 @@ $else:
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
           jaws.context.fillText(items[i], 225 + i * 60, 225)
         }
+
+        jaws.context.font = "bold 30pt terminal";
+        jaws.context.lineWidth = 10
+        jaws.context.fillStyle =  "Black"
+        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+        jaws.context.fillText("change (n)ame", 200, 350)
+
         jaws.context.font = "bold 30pt terminal";
         jaws.context.lineWidth = 10
         jaws.context.fillStyle =  "Black"
@@ -1422,6 +1428,280 @@ $else:
         jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
         jaws.context.fillText("(m)ode: " + game_mode, 210, 450)  
       }
+    }  
+
+    function PlayerNameState() {
+
+      messageConsole = function() {
+        console.log("player_name = " + player_name)
+      }
+
+      this.setup = function() {
+
+        var shift = false
+
+        jaws.on_keydown(["shift"], function () {
+          shift = true
+        })
+
+        jaws.on_keyup(["shift"], function () {
+          shift = false
+        })
+
+        jaws.on_keydown(["enter"],  function()  { 
+          jaws.switchGameState(MenuState) 
+        } )
+
+        jaws.on_keydown(["backspace"], function() {
+          player_name = player_name.substring(0,player_name.length-1)
+          messageConsole()
+        })
+
+        jaws.on_keydown(["space"], function () {
+          if (player_name.length < 10)
+            player_name += " "
+          messageConsole()
+        })
+
+        jaws.on_keydown(["a"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "A" : "a"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["b"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "B" : "b"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["c"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "C" : "c"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["d"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "D" : "d"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["e"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "E" : "e"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["f"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "F" : "f"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["g"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "G" : "g"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["h"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "H" : "h"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["i"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "I" : "i"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["j"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "J" : "j"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["k"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "K" : "k"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["l"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "L" : "l"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["m"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "M" : "m"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["n"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "N" : "n"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["o"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "O" : "o"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["p"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "P" : "p"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["q"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "Q" : "q"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["r"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "R" : "r"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["s"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "S" : "s"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["t"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "T" : "t"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["u"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "U" : "u"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["v"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "V" : "v"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["w"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "W" : "w"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["x"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "X" : "x"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["y"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "Y" : "y"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["z"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "Z" : "z"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["0"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? ")" : "0"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["1"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "!" : "1"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["2"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "@" : "2"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["3"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "#" : "3"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["4"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "$" : "4"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["5"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "%" : "5"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["6"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "^" : "6"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["7"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "&" : "7"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["8"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "*" : "8"
+          messageConsole()
+        })
+
+        jaws.on_keydown(["9"], function () {
+          if (player_name.length < 10)
+            player_name += (shift) ? "(" : "9"
+          messageConsole()
+        })
+
+
+      }
+
+      this.draw = function() {
+
+        jaws.context.clearRect(0,0,jaws.width,jaws.height)
+
+        jaws.context.font = "bold 30pt terminal";
+        jaws.context.lineWidth = 10
+        jaws.context.fillStyle =  "Black"
+        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+        jaws.context.fillText("Please enter your name:", 125, 225)
+
+        jaws.context.font = "bold 30pt terminal";
+        jaws.context.lineWidth = 10
+        jaws.context.fillStyle =  "Black"
+        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+
+        var name_text = player_name
+        if (player_name.length < 10) name_text += "_"
+
+        jaws.context.fillText(name_text, 210, 275)  
+      }
     }    
     
     jaws.onload = function() {
@@ -1430,7 +1710,10 @@ $else:
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
       jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/BOARD.gif"])
-      jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
+      if (name_entered)
+        jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
+      else
+        jaws.start(PlayerNameState)
     }
 
   </script>
