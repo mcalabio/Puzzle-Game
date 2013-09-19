@@ -17,8 +17,8 @@ $def with (name)
   <script>
 
     // CONSTANTS
-    var X_SPEED = 10
-    var Y_SPEED = 60
+    var SLOW = 10
+    var FAST = 60
     var BOARD_WIDTH = 6
     var BOARD_HEIGHT = 10
     var ITEM_WIDTH = 40
@@ -45,6 +45,8 @@ $def with (name)
     }
 
     // GLOBALS
+    var X_SPEED = SLOW
+    var Y_SPEED = FAST
     var name_entered = false
     var player_name = "zonky"
     var player_level = 1
@@ -83,91 +85,91 @@ $def with (name)
           jaws.start(Game)
 
         // Player Controls
-
-        jaws.on_keydown(["left","a"], function() {
-          if(player.x > 0) {
-            if (player.canMoveX(-1)) player.moveX(-1)
-            else {
-              // drop minimum amount of items on hand so hand can move left
-              var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length)
-              if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length > 0) {
-                player.drop(player.board.stacks[player.x],drop_amount)
-                player.moveX(-1)
+        if (control_scheme == 1) {
+          jaws.on_keydown(["left","a"], function() {
+            X_SPEED = SLOW
+            if(player.x > 0) {
+              if (player.canMoveX(-1)) player.moveX(-1)
+              else {
+                // drop minimum amount of items on hand so hand can move left
+                var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length)
+                if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length > 0) {
+                  player.drop(player.board.stacks[player.x],drop_amount)
+                  player.moveX(-1)
+                }
               }
+            } 
+            console.log("player (" + player.x + " , " + player.y + ")")
+          })
+          jaws.on_keydown(["right","d"], function() {
+            X_SPEED = SLOW
+            if(player.x < BOARD_WIDTH - 1) {
+              if (player.canMoveX(1)) player.moveX(1)
+              else {
+                // drop minimum amount of items on hand so hand can move right
+                var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length)
+                if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length > 0) {
+                  player.drop(player.board.stacks[player.x],drop_amount)
+                  player.moveX(1)
+                }
 
-            }
-          } 
-          console.log("player (" + player.x + " , " + player.y + ")")
-        })
-        jaws.on_keydown(["right","d"], function() {
-          if(player.x < BOARD_WIDTH - 1) {
-            if (player.canMoveX(1)) player.moveX(1)
-            else {
-              // drop minimum amount of items on hand so hand can move right
-              var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length)
-              if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length > 0) {
-                player.drop(player.board.stacks[player.x],drop_amount)
-                player.moveX(1)
               }
+            } 
+            console.log("player (" + player.x + " , " + player.y + ")")
+          })
+          jaws.on_keydown(["up","w"], function() {
+            if(player.y < BOARD_HEIGHT-1)player.y += 1
+            console.log("player (" + player.x + " , " + player.y + ")")
+          })
+          jaws.on_keydown(["down","s"], function() {
 
-            }
-          } 
-          console.log("player (" + player.x + " , " + player.y + ")")
-        })
-        jaws.on_keydown(["up","w"], function() {
-          if(player.y < BOARD_HEIGHT-1)player.y += 1
-          console.log("player (" + player.x + " , " + player.y + ")")
-        })
-        jaws.on_keydown(["down","s"], function() {
-
-          if(player.hand.items.length>0) {
-            player.drop(player.board.stacks[player.x],player.hand.items.length)              
-          } else if(player.y > 0) player.y -= 1
+            if(player.hand.items.length>0) {
+              player.drop(player.board.stacks[player.x],player.hand.items.length)              
+            } else if(player.y > 0) player.y -= 1
 
 
-          console.log("player (" + player.x + " , " + player.y + ")")
-        })
-        jaws.on_keydown(["z","k"], function() {
-          if(control_scheme == 1) {
+            console.log("player (" + player.x + " , " + player.y + ")")
+          })
+          jaws.on_keydown(["z","k"], function() {
             if(player.hand.items.length == 0) {          
               player.grab(player.board.stacks[player.x],player.board.stacks[player.x].items.length)
             } else {
               player.drop(player.board.stacks[player.x],player.hand.items.length)
             }
-          }
-        })
-        jaws.on_keydown(["x","j","space"], function() {
-          if(player.hand.items.length == 0) {
-            //grab depth determined by cursor y-position
-            var depth = player.board.stacks[player.x].items.length - player.y
-            player.grab(player.board.stacks[player.x],depth)
-          } else {
-            //drop
-            player.drop(player.board.stacks[player.x],1)
-          }
-        })
+          })
+          jaws.on_keydown(["x","j","space"], function() {
+            if(player.hand.items.length == 0) {
+              //grab depth determined by cursor y-position
+              var depth = player.board.stacks[player.x].items.length - player.y
+              player.grab(player.board.stacks[player.x],depth)
+            } else {
+              //drop
+              player.drop(player.board.stacks[player.x],1)
+            }
+          })
+        } else if (control_scheme == 2) {
+
+          jaws.on_keydown(["left_mouse_button"], function() {
+            var click_coordinates = new Array()
+            click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
+            console.log("click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
+            player.clickAction(click_coordinates)
+          })
+
+          jaws.on_keydown(["right_mouse_button"], function() {
+            var click_coordinates = new Array()
+            click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
+            console.log("right click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
+            player.clickAction(click_coordinates,true)
+          })
+        }
+
         jaws.on_keydown("r", function() {
           jaws.start(Game)
         })  
         jaws.on_keydown(["enter","esc"], function() {
           jaws.start(MenuState)
-        })  
-
-        jaws.on_keydown(["left_mouse_button"], function() {
-          console.log("LEFT CLICK at (" + jaws.mouse_x + "," + jaws.mouse_y + ")")
-          console.log("board coordinates: (" + player.board.board.x + "," + player.board.board.y + ")")
-
-          var click_coordinates = new Array()
-
-          // convert canvas coordinates to board coordinates (stack,depth)
-          click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
-
-          console.log("click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
-
-          // TODO: now make the click do stuff
-          // player.clickAction()
-
-        })
+        })    
 
         player.update()
 
@@ -230,6 +232,25 @@ $def with (name)
             item.x = this.x
             item.sprite.dx = this.board.posx(this.x)
           }
+        }
+
+        this.moveX_click = function(x) {
+
+          var sign = x?x<0?-1:1:0
+
+          for (var i=0; i < Math.abs(x); i++) {
+            if (this.canMoveX(sign)) player.moveX(sign)
+            else {
+              // drop minimum amount of items on hand so hand can move left
+              var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + sign].items.length)
+              if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x + sign].items.length > 0) {
+                player.drop(player.board.stacks[player.x],drop_amount)
+                player.moveX(sign)
+              }
+            }
+            // update each item in hand
+          }
+
         }
 
         // grab depth amount of items from stack
@@ -308,6 +329,63 @@ $def with (name)
             this.y = stack_items.length - depth // at item at bottom of hand stack          
 
         }
+
+        this.clickAction = function(click_coordinates,right_click) {
+
+          var click_x = click_coordinates[0]
+          var click_y = click_coordinates[1]
+          right_click = typeof right_click !== 'undefined' ? right_click : false;
+
+          if (click_x < 0) click_x = 0
+          else if (click_x >= BOARD_WIDTH) click_x = BOARD_WIDTH-1
+
+          // move player cursor to clicked x coordinate
+          if (Math.abs(click_x - this.x) > 1) X_SPEED = FAST
+          else X_SPEED = SLOW
+
+          var this_stack = this.board.stacks[click_x]
+
+          // grab if hand is empty
+          if (this.hand.items.length == 0) {
+
+            this.moveX(click_x - this.x)
+
+            // grab if item on stack is clicked
+            if (this_stack.items.length >= click_y) {
+
+              var depth = (right_click) ? this_stack.items.length : this_stack.items.length - click_y // how many items to grab
+              this.grab(this_stack,depth)
+
+            }
+
+          // drop if hand is holding items
+          } else {
+
+            // drop if clicked over stack where hand is above
+            if (this.x == click_x) {
+
+              // drop items if clicked outside of hand
+              var cutoff = BOARD_HEIGHT - this.hand.items.length
+              if (right_click) // drop all items
+                depth = this.hand.items.length
+              else if (click_y < cutoff) // drop one item
+                depth = 1
+              else // drop all items below item clicked
+                depth = click_y - cutoff + 1
+
+              this.drop(this_stack,depth)
+
+            // move hand over stack if possible
+            } else {
+              this.moveX_click(click_x - this.x)
+
+            }
+
+          }
+
+        }
+
+
 
         // update player sprites positions
         this.updatePlayerSprites = function(dx,dy) {
@@ -1372,7 +1450,8 @@ $def with (name)
     // construct record string
     function buildRecordString (board, winloss) {
 
-      var record = player_name + " " + player_level + "-" + player_stage + "-" + ((game_mode == 1) ? "E" : "H") + " (" + board.player.timer.clock_text + ") " + winloss + "\n"
+      var control_text = (control_scheme == 1) ? "KB" : "MS"
+      var record = player_name + " " + control_text + " " + player_level + "-" + player_stage + "-" + ((game_mode == 1) ? "E" : "H") + " (" + board.player.timer.clock_text + ") " + winloss + "\n"
 
       console.log(record)
 
@@ -1475,13 +1554,15 @@ $def with (name)
         jaws.context.lineWidth = 10
         jaws.context.fillStyle =  "Black"
         jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-        jaws.context.fillText(" (c)ontrols: " + control_scheme, 200, 400)
+        var control_text = (control_scheme == 1) ? "KB" : "MS"
+        jaws.context.fillText(" (c)ontrols: " + control_text, 200, 400)
 
         jaws.context.font = "bold 30pt terminal";
         jaws.context.lineWidth = 10
         jaws.context.fillStyle =  "Black"
         jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-        jaws.context.fillText("(m)ode: " + game_mode, 210, 450)  
+        var mode_text = (game_mode == 1) ? "easy" : "hard"
+        jaws.context.fillText("(m)ode: " + mode_text, 210, 450)  
       }
     }  
 
