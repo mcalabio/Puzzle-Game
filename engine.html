@@ -46,7 +46,7 @@ $def with (name)
 
     // GLOBALS
     var name_entered = false
-    var player_name = "Player"
+    var player_name = "zonky"
     var player_level = 1
     var player_stage = 1
     var control_scheme = 1
@@ -222,18 +222,23 @@ $def with (name)
           // move the cursor quickly to the top of the screen
           this.cursor_speed = Y_SPEED
 
+          // loop through the items of the stack according to depth passed in
+          // pop items and push to the player hand, one by one
           for(var i=0; i<depth; i++) {
 
-            if (stack.items[stack.items.length-1].breaking)
-              break
-
-            var item = stack.items.pop()
-
             // stop pushing to hand when breaking item encountered
-            // if (item.breaking)
+            // if (stack.items[stack.items.length-1].breaking)
             //   break
 
+            var item = stack.items.pop()
+            if (item.breaking) {
+              stack.items.push(item)
+              break
+            }
+
+
             // push top of stack to hand
+
             this.hand.items.push(item)
 
             // update hand position
@@ -1718,8 +1723,6 @@ $def with (name)
     }    
     
     jaws.onload = function() {
-      console.log("Board is filled according to level-stage. Working on win/lose conditions.")
-      console.log("TODO: update breaking condition ")
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
       jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/BOARD.gif"])
