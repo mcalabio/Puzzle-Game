@@ -153,6 +153,22 @@ $def with (name)
           jaws.start(MenuState)
         })  
 
+        jaws.on_keydown(["left_mouse_button"], function() {
+          console.log("LEFT CLICK at (" + jaws.mouse_x + "," + jaws.mouse_y + ")")
+          console.log("board coordinates: (" + player.board.board.x + "," + player.board.board.y + ")")
+
+          var click_coordinates = new Array()
+
+          // convert canvas coordinates to board coordinates (stack,depth)
+          click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
+
+          console.log("click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
+
+          // TODO: now make the click do stuff
+          // player.clickAction()
+
+        })
+
         player.update()
 
         live_info.innerHTML = jaws.game_loop.fps + " fps. Player: " + parseInt(player.x) + "/" + parseInt(player.y) + ". "
@@ -513,6 +529,27 @@ $def with (name)
         // provide position with respect to this Board
         this.posx = function(x) { return this.board.x + x * ITEM_WIDTH }
         this.posy = function(y) { return this.board.y + (BOARD_HEIGHT - 1 - y)*ITEM_WIDTH }
+
+        // provide coordinates of clicks with respect to (stack, depth)
+        this.boardCoordinates = function(x,y) {
+          console.log("converting click coordinates to board coordinates")
+
+          // find click coordinates with respect to board's top-left position in canvas
+          var board_x = x - this.board.x
+          var board_y = y - this.board.y
+
+          // figure out which stack player clicked above or on
+          // bitwise OR operator to truncate float point figures
+          board_x = (board_x / ITEM_WIDTH) | 0
+
+          // figure out depth the player clicked into the stack
+          board_y = BOARD_HEIGHT + (BOARD_HEIGHT - board_y) / ITEM_WIDTH | 0
+
+          return [board_x, board_y]
+
+
+
+        }
 
         // check if the player has reached a win/lose condition and act accordingly
         this.checkWinLose = function() {
