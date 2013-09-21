@@ -6,7 +6,7 @@ $def with (name)
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
     <script src="./static/jawsjs/jaws.js"></script>
     <link type="text/css" rel="stylesheet" href="./static/style.css" />
-    <title>Puzzle Game</title>
+    <title>Super Wizard Potion</title>
   </head>
 <body>
 
@@ -49,9 +49,9 @@ $def with (name)
     var Y_SPEED = FAST
     var name_entered = false
     var player_name = "zonky"
-    var player_level = 1
+    var player_level = 5
     var player_stage = 1
-    var control_scheme = 1
+    var control_scheme = 2
     var game_mode = 1
 
     function Game() {
@@ -232,24 +232,29 @@ $def with (name)
             item.x = this.x
             item.sprite.dx = this.board.posx(this.x)
           }
+
+          console.log("player x = " + this.x)
         }
 
         this.moveX_click = function(x) {
 
           var sign = x?x<0?-1:1:0
+          var hit_wall = false
 
           for (var i=0; i < Math.abs(x); i++) {
             if (this.canMoveX(sign)) player.moveX(sign)
             else {
               // drop minimum amount of items on hand so hand can move left
               var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + sign].items.length)
+              hit_wall = true
               if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x + sign].items.length > 0) {
                 player.drop(player.board.stacks[player.x],drop_amount)
                 player.moveX(sign)
               }
             }
-            // update each item in hand
           }
+
+          return hit_wall
 
         }
 
@@ -344,42 +349,46 @@ $def with (name)
           else X_SPEED = SLOW
 
           var this_stack = this.board.stacks[click_x]
+          var depth = 0
+          var old_x = this.x
+
+          // move the hand and catch if it hit a wall
+          var hit_wall = this.moveX_click(click_x - this.x)
+          this_stack = this.board.stacks[this.x] // update this_stack
 
           // grab if hand is empty
           if (this.hand.items.length == 0) {
 
-            this.moveX(click_x - this.x)
-
             // grab if item on stack is clicked
-            if (this_stack.items.length >= click_y) {
-
-              var depth = (right_click) ? this_stack.items.length : this_stack.items.length - click_y // how many items to grab
-              this.grab(this_stack,depth)
-
+            if (right_click)
+              depth = this_stack.items.length
+            else if (this_stack.items.length >= click_y) {
+              depth = this_stack.items.length - click_y // how many items to grab
             }
+
+            this.grab(this_stack,depth)
 
           // drop if hand is holding items
           } else {
 
-            // drop if clicked over stack where hand is above
-            if (this.x == click_x) {
-
-              // drop items if clicked outside of hand
-              var cutoff = BOARD_HEIGHT - this.hand.items.length
-              if (right_click) // drop all items
-                depth = this.hand.items.length
-              else if (click_y < cutoff) // drop one item
+            // determine y coordinate of bottom of hand stack
+            var cutoff = BOARD_HEIGHT - this.hand.items.length
+            console.log("click_y = " + click_y)
+            console.log("cutoff = " + cutoff)
+            if (right_click)
+              depth = this.hand.items.length
+            else if (click_y < cutoff) {
+              depth = 1
+            } else if (old_x == click_x) {
+              depth = click_y - cutoff + 1
+            } else if (old_x != click_x) {
+              if (click_y == this_stack.items.length)
                 depth = 1
-              else // drop all items below item clicked
-                depth = click_y - cutoff + 1
-
-              this.drop(this_stack,depth)
-
-            // move hand over stack if possible
-            } else {
-              this.moveX_click(click_x - this.x)
-
             }
+            if (hit_wall)
+             depth = 0
+            console.log("depth = " + depth)
+            this.drop(this_stack,depth)
 
           }
 
@@ -438,6 +447,8 @@ $def with (name)
           this.hand.draw()
           // jaws.context.drawImage(jaws.assets.get("images/cursor.gif"), this.cursor.x, this.cursor.y)
 
+          if (control_scheme == 2 && this.hand.items.length == 0)
+            return
           this.cursor_top.draw()
           this.cursor_bottom.draw()
         }
@@ -686,7 +697,7 @@ $def with (name)
           // window.alert ("checking for lose condition with potential_white_potions = " + potential_white_potions)
           if (potential_white_potions < this.flask_count[EMPTY]) {
                 console.log("lose! Not enough white blocks to clear robots.")
-                var record = buildRecordString("L")
+                var record = buildRecordString(this,"L")
                 saveRecord(record)
                 window.alert(record)
                 jaws.start(Game)
