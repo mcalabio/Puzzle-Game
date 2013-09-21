@@ -3,8 +3,8 @@ $def with (name)
 <!DOCTYPE html> 
 <html>
   <head>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
     <script src="./static/jawsjs/jaws.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
     <link type="text/css" rel="stylesheet" href="./static/style.css" />
     <title>Super Wizard Potion</title>
   </head>
@@ -24,11 +24,11 @@ $def with (name)
     var ITEM_WIDTH = 40
 
 
-    var COLORS = new Array("RED","GREEN","BLUE","YELLOW","PURPLE","ORANGE","EMPTY","WHITE","UNSTABLE")
+    var COLORS = new Array("RED","GREEN","PURPLE","BLUE","YELLOW","ORANGE","EMPTY","WHITE","UNSTABLE")
     var RED = 0
     var GREEN = 1
-    var BLUE = 2
-    var YELLOW = 3
+    var PURPLE = 2
+    var BLUE = 3
     var UNSTABLE = COLORS.length - 1
     var WHITE = COLORS.length - 2
     var EMPTY = COLORS.length - 3
@@ -36,9 +36,9 @@ $def with (name)
     var COLOR = {
       RED : 0,
       GREEN : 1,
-      BLUE : 2,
-      YELLOW : 3,
-      PURPLE : 4,
+      PURPLE : 2,
+      BLUE : 3,
+      YELLOW : 4,
       ORANGE : 5,
       EMPTY : 6,
       WHITE : 7
@@ -49,15 +49,19 @@ $def with (name)
     var Y_SPEED = FAST
     var name_entered = false
     var player_name = "zonky"
-    var player_level = 5
+    var player_level = 3
     var player_stage = 1
-    var control_scheme = 2
+    var control_scheme = 1
     var game_mode = 1
+    var game_record = ""
 
     function Game() {
       var player
       var viewport
       var need_to_restart = false
+      var game_end = ""
+      var game_end_timer = 30
+
 
       /* Called once when a game state is activated. Use it for one-time setup code. */
       this.setup = function() {
@@ -83,6 +87,12 @@ $def with (name)
 
         if (need_to_restart)
           jaws.start(Game)
+
+        if (game_end == "W" || game_end == "L")
+          game_end_timer--
+
+        if (game_end_timer <= 0)
+          player.board.winLose()
 
         // Player Controls
         if (control_scheme == 1) {
@@ -647,8 +657,7 @@ $def with (name)
           console.log("checking win condition")
           if (!(this.robot_count<[0,0,0,0,0,0] || [0,0,0,0,0,0]<this.robot_count)) { // array equality
             var record = buildRecordString(this,"W")
-            saveRecord(record)
-            window.alert(record)
+            game_end = "W"
             if (player_level == 1) {
               if (player_stage == 6) {
                 player_level++
@@ -686,8 +695,7 @@ $def with (name)
                 console.log("lose!")
                 var record = buildRecordString(this,"L")
                 saveRecord(record)
-                window.alert(record)
-                jaws.start(Game)
+                game_end = "L"
               }
             }
           }
@@ -699,11 +707,15 @@ $def with (name)
                 console.log("lose! Not enough white blocks to clear robots.")
                 var record = buildRecordString(this,"L")
                 saveRecord(record)
-                window.alert(record)
-                jaws.start(Game)
+                game_end = "L"
           }
 
 
+        }
+
+        this.winLose = function() {
+          window.alert(game_record)
+          jaws.start(Game)
         }
 
         // check for items of specified type,color that are breaking
@@ -948,6 +960,50 @@ $def with (name)
 
         }
 
+        this.shedRobot = function(old_item) {
+
+          // sanity check!!!!!!!
+          if (old_item.type != 2)
+            return
+
+          console.log("shedding (" + old_item.type + ") of color (" + old_item.color + ")")
+
+          // remove old item from items array
+          // TODO: replace robot with color of (old_item.color - 3)
+          this.items.splice(old_item.y,1,new Item(this,2,old_item.color-3,old_item.x,old_item.y))
+
+          // update board count
+          this.board.robot_count[old_item.color]--
+
+          // check for win/lose only when blocks and robots are broken since flasks break first
+          // but only check when items aren't breaking
+          if (!old_item.stack.itemsBreaking()) {
+            if (old_item.type == 0 || old_item.type == 1) {
+              // if (old_item.color != WHITE)
+                this.board.checkWinLose() // check for win/lose conditions
+            } else if (old_item.type == 2) {
+              // make sure that there are no other robots in the process of being removed
+              var below = this.items[old_item.y - 1]
+              if(below == undefined) {
+                this.board.checkWinLose()
+              } else {
+                // if there is an item below, check if it is a robot of the same color
+                if (!(below.type == 2 && below.color == old_item.color && below.breaking)) {
+                  this.board.checkWinLose()
+                }
+              }
+
+            }
+          }
+
+          console.log("block_count = " + this.board.block_count)
+          console.log("flask_count = " + this.board.flask_count)
+          console.log("robot_count = " + this.board.robot_count)
+
+          this.checkForMatches()
+
+        }        
+
         // check if there are items breaking on this stack
         this.itemsBreaking = function() {
 
@@ -981,9 +1037,9 @@ $def with (name)
 
             // determine which sprites to use
             var death_color = "RED"
-            if (this_robot.color == 1 || this_robot.color == 3)
+            if (this_robot.color == 1 || this_robot.color == 4)
               death_color = "YELLOW"
-            else if (this_robot.color == 4 || this_robot.color == 5)
+            else if (this_robot.color == 2 || this_robot.color == 5)
               death_color = "PURPLE"
 
             // update sprite data
@@ -1074,7 +1130,14 @@ $def with (name)
 
             // remove item if death counter has expired
             if (item.deathcounter <= 0) {
-              this.removeItem(item)
+
+              // do not destroy blue, yellow, orange robots
+              if(item.type == 2 && (item.color == 3 || item.color == 4 || item.color == 5)) {
+                this.shedRobot(item)
+                console.log("shedRobot")
+              }
+              else
+                this.removeItem(item)
             }
 
             // animate robots
@@ -1465,6 +1528,10 @@ $def with (name)
       var record = player_name + " " + control_text + " " + player_level + "-" + player_stage + "-" + ((game_mode == 1) ? "E" : "H") + " (" + board.player.timer.clock_text + ") " + winloss + "\n"
 
       console.log(record)
+
+      game_record = record
+
+      console.log("game_record = " + game_record)
 
       return record
 
