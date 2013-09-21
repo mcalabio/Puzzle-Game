@@ -49,7 +49,7 @@ $def with (name)
     var Y_SPEED = FAST
     var name_entered = false
     var player_name = "zonky"
-    var player_level = 3
+    var player_level = 1
     var player_stage = 1
     var control_scheme = 1
     var game_mode = 1
@@ -524,22 +524,47 @@ $def with (name)
             }
 
             // put at least one flask for each color, fill up flasks with white for mode: 1
-            items_array.push([1, (game_mode == 1) ? WHITE : EMPTY])
+            //items_array.push([1, (game_mode == 1) ? WHITE : EMPTY])
 
             // put at least three blocks for each color
             items_array.push([0,c])
             items_array.push([0,c])
             items_array.push([0,c])
 
-            // for mode: 2
-            if (game_mode == 2) {
-              // put at least three white blocks for each color
-              items_array.push([0,WHITE])
-              items_array.push([0,WHITE])
-              items_array.push([0,WHITE])
-            }
-
           }
+
+          // put in flasks
+          var num_empty_flasks = Math.floor(total_colors / 2)
+
+          // exceptions
+          // 1-3
+          if (player_level == 1) {
+            if (player_stage == 3) 
+              num_empty_flasks = 0
+            else if (player_stage == 6) {
+              num_empty_flasks = 1    
+              window.alert("exceptions stage 6")
+            }        
+          } else if (player_level == 6) {
+            if (player_stage == 1)
+              num_empty_flasks = 2
+            else if (player_stage == 6)
+              num_empty_flasks = 1            
+          }
+
+          console.log("num_empty_flasks = " + num_empty_flasks)
+
+          var num_white_flasks = total_colors - num_empty_flasks
+
+          for (var e=0; e < num_empty_flasks; e++) {
+            items_array.push([1, EMPTY])
+            // put at least three white blocks for each empty flask
+            items_array.push([0,WHITE])
+            items_array.push([0,WHITE])
+            items_array.push([0,WHITE])
+          }
+          for (var w=0; w < num_white_flasks; w++)
+            items_array.push([1, WHITE])
 
           console.log("item_count = " + items_array.length)
 
@@ -658,29 +683,6 @@ $def with (name)
           if (!(this.robot_count<[0,0,0,0,0,0] || [0,0,0,0,0,0]<this.robot_count)) { // array equality
             var record = buildRecordString(this,"W")
             game_end = "W"
-            if (player_level == 1) {
-              if (player_stage == 6) {
-                player_level++
-                player_stage = 1
-              } else {
-                player_stage++
-              }
-            } else if (player_level == 6){
-              if (player_stage == 1) {
-                player_stage = 6
-              }
-            } else {
-              player_level++
-            }
-            // if (player_stage < 6) {
-            //   player_stage++
-            // } else {
-            //   if (player_level < 6) {
-            //     player_level++
-            //     player_stage = 1
-            //   }
-            // }
-            jaws.start(MenuState)
           }
 
           // lose condition: no more blocks/flasks to clear robots
@@ -715,7 +717,25 @@ $def with (name)
 
         this.winLose = function() {
           window.alert(game_record)
-          jaws.start(Game)
+          if (game_end == "W") {
+            if (player_level == 1) {
+              if (player_stage == 3) {
+                player_level++
+                player_stage = 1
+              } else {
+                player_stage++
+              }
+            } else if (player_level == 6){
+              if (player_stage == 1) {
+                player_stage = 6
+              }
+            } else {
+              player_level++
+            }
+            jaws.start(MenuState)  
+          } else if (game_end == "L") {
+            jaws.start(Game)
+          }
         }
 
         // check for items of specified type,color that are breaking
@@ -775,7 +795,13 @@ $def with (name)
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  "Black"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-          jaws.context.fillText(this.player.timer.clock_text, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 75)
+          jaws.context.fillText(player_level + " - " + player_stage, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 75)
+
+          jaws.context.font = "bold 25pt terminal";
+          jaws.context.lineWidth = 10
+          jaws.context.fillStyle =  (game_end == "") ? "Black" : "Red"
+          jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+          jaws.context.fillText(this.player.timer.clock_text, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 125)
 
           // draw all effects on this board
           for (var e=0; e < this.effects.length; e++) {
@@ -1479,7 +1505,7 @@ $def with (name)
 
         // increment the ticker and count the seconds and minutes
         this.update = function() {
-          this.ticker++
+          if (game_end == "") this.ticker++
           if (this.ticker >= 60) {
             this.ticker = 0
             this.seconds++
@@ -1635,12 +1661,12 @@ $def with (name)
         var control_text = (control_scheme == 1) ? "KB" : "MS"
         jaws.context.fillText(" (c)ontrols: " + control_text, 200, 400)
 
-        jaws.context.font = "bold 30pt terminal";
-        jaws.context.lineWidth = 10
-        jaws.context.fillStyle =  "Black"
-        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-        var mode_text = (game_mode == 1) ? "easy" : "hard"
-        jaws.context.fillText("(m)ode: " + mode_text, 210, 450)  
+        // jaws.context.font = "bold 30pt terminal";
+        // jaws.context.lineWidth = 10
+        // jaws.context.fillStyle =  "Black"
+        // jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+        // var mode_text = (game_mode == 1) ? "easy" : "hard"
+        // jaws.context.fillText("(m)ode: " + mode_text, 210, 450)  
       }
     }  
 
