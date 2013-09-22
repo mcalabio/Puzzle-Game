@@ -51,7 +51,7 @@ $def with (name)
     var player_name = "zonky"
     var player_level = 1
     var player_stage = 1
-    var control_scheme = 1
+    var control_scheme = 2
     var game_mode = 1
     var game_record = ""
 
@@ -543,7 +543,6 @@ $def with (name)
               num_empty_flasks = 0
             else if (player_stage == 6) {
               num_empty_flasks = 1    
-              window.alert("exceptions stage 6")
             }        
           } else if (player_level == 6) {
             if (player_stage == 1)
@@ -609,12 +608,15 @@ $def with (name)
             this.stacks.push(new Stack(this,level,i))
           }
 
+          console.log("items_array = " + items_array)
+
           // randomly decide which stack to place items in
           while (items_array.length > 0) {
             
             var rand_stack = Math.floor(Math.random()*6)
             var this_stack = this.stacks[rand_stack]
             if (this_stack.items.length >= level + 3) {
+              console.log(items_array.length)
               console.log("top of stack reached")
               continue
             }
@@ -641,6 +643,15 @@ $def with (name)
             if(this.block_count[c] == 5) {
               console.log("5 blocks of color(" + COLORS[c] + ") found. Resetting board.")
               need_to_restart = true
+            }
+          }
+
+          // make sure that robot don't shed to add up to more than 9
+          for(var i=0; i < 3; i++) {
+            if(this.robot_count[i] + this.robot_count[i+3] > 9) {
+              window.alert("boys ii men")
+              need_to_restart = true
+              break
             }
           }
 
@@ -682,6 +693,7 @@ $def with (name)
           console.log("checking win condition")
           if (!(this.robot_count<[0,0,0,0,0,0] || [0,0,0,0,0,0]<this.robot_count)) { // array equality
             var record = buildRecordString(this,"W")
+            saveRecord(record)
             game_end = "W"
           }
 
@@ -719,7 +731,9 @@ $def with (name)
           window.alert(game_record)
           if (game_end == "W") {
             if (player_level == 1) {
-              if (player_stage == 3) {
+              if (player_stage == 3)
+                player_stage = 6
+              else if (player_stage == 6) {
                 player_level++
                 player_stage = 1
               } else {
@@ -1551,7 +1565,7 @@ $def with (name)
     function buildRecordString (board, winloss) {
 
       var control_text = (control_scheme == 1) ? "KB" : "MS"
-      var record = player_name + " " + control_text + " " + player_level + "-" + player_stage + "-" + ((game_mode == 1) ? "E" : "H") + " (" + board.player.timer.clock_text + ") " + winloss + "\n"
+      var record = player_name + " " + control_text + " " + player_level + "-" + player_stage + " (" + board.player.timer.clock_text + ") " + winloss + "\n"
 
       console.log(record)
 
@@ -1618,6 +1632,10 @@ $def with (name)
         jaws.on_keydown(["enter","space"],  function()  { 
           jaws.switchGameState(Game) 
         } )
+        
+        jaws.on_keydown(["left_mouse_button","right_mouse_button"], function() {
+          jaws.switchGameState(Game) 
+        })
 
         // name mode
         jaws.on_keydown(["n"], function() {
