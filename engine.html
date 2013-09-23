@@ -1,9 +1,9 @@
 $def with (name)
 
-<!DOCTYPE html> 
 <html>
   <head>
     <script src="./static/jawsjs/jaws.js"></script>
+    <script src="./static/json/json.js"></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
     <link type="text/css" rel="stylesheet" href="./static/style.css" />
     <title>Super Wizard Potion</title>
@@ -72,7 +72,10 @@ $def with (name)
 
         player = new Player(3,0)
 
-        player.board.fill(player_level,player_stage)
+        if (player_level == 0)
+          player.board.fillLevel(player_level,player_stage)
+        else
+          player.board.fill(player_level,player_stage)
 
         console.log("setup game")
         console.log("player_name = " + player_name)
@@ -477,6 +480,59 @@ $def with (name)
 
         this.effects = new Array()
 
+        // provide position with respect to this Board
+        this.posx = function(x) { return this.board.x + x * ITEM_WIDTH }
+        this.posy = function(y) { return this.board.y + (BOARD_HEIGHT - 1 - y)*ITEM_WIDTH }
+
+        this.fillLevel = function(level,stage) {
+
+          loadLevel(stage, this, function(data, this_board) {
+            var stacks_string = data.split('\n')
+
+            // console.log("string_string = " + string_string)
+            
+            // var level_string = "2|0,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
+            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
+            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
+            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
+            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
+            // "1|6,1|6,1|6,1|6,1|6,1|0\n" //loadLevel(stage)
+            // var stacks_string = level_string.split('\n')
+            var items
+
+            // go through each stack
+            for (var s=0; s < BOARD_WIDTH; s++) {
+
+              console.log("what is this?? = " + this_board)
+              console.log("stack string = " + stacks_string[s])
+
+              this_board.stacks.push(new Stack(this_board,level,s))
+
+              var this_stack = this_board.stacks[s]
+
+              // go through each item
+              items = stacks_string[s].split(',')
+
+              for (var i=0; i < items.length; i++) {
+
+                var item = items[i]
+                var item_string = item.split('|')
+
+                var type = item_string[0]
+                var color = item_string[1]
+
+                console.log("looking though item of type = " + type + ", color = " + color)
+
+                this_stack.items.push(new Item(this_stack,type,color,s,i))
+
+              }
+
+            }
+          })
+
+          
+        }
+
         // fill up the board with items depending on level-stage
         this.fill = function(level,stage) {
 
@@ -649,7 +705,6 @@ $def with (name)
           // make sure that robot don't shed to add up to more than 9
           for(var i=0; i < 3; i++) {
             if(this.robot_count[i] + this.robot_count[i+3] > 9) {
-              window.alert("boys ii men")
               need_to_restart = true
               break
             }
@@ -660,10 +715,6 @@ $def with (name)
           console.log("robot_count = " + this.robot_count)
           
         }
-
-        // provide position with respect to this Board
-        this.posx = function(x) { return this.board.x + x * ITEM_WIDTH }
-        this.posy = function(y) { return this.board.y + (BOARD_HEIGHT - 1 - y)*ITEM_WIDTH }
 
         // provide coordinates of clicks with respect to (stack, depth)
         this.boardCoordinates = function(x,y) {
@@ -1578,14 +1629,34 @@ $def with (name)
     }
 
     function saveRecord (record) {
-      console.log("savingRecord()")
+
+      var json_data = JSON.stringify({'type': "saveRecord", 'data': record})
+
+      console.log("savingRecord() with json_data = " + json_data)
       jQuery.ajax({
         type: "POST",
-        data: record,
+        data: json_data,
         success: function(data) {
-          console.log("record POSTed to server")
+          console.log("record POSTed to server: " + data)
           }
       });
+
+    }
+
+    function loadLevel (level,board,callback) {
+
+      var json_data = JSON.stringify({'type': "loadLevel", 'data': level})
+
+      console.log("loading stage = " + level)
+      jQuery.ajax({
+        type: "POST",
+        data: json_data,
+        success: function(data) {
+          console.log("retrieved level data from server = " + data)
+          callback(data,board)
+        }
+      })
+
     }
 
     /*
@@ -1615,10 +1686,12 @@ $def with (name)
               items[index] = player_stage
             }
           }
+          console.log("items[0] = " + items[0])
+          console.log("items[2] = " + items[2])
         })
         jaws.on_keydown(["down","s"], function() {
           if (index==0) {
-            if (player_level > 1) {
+            if (player_level > 0) {
               player_level--
               items[index] = player_level
             }
@@ -1628,6 +1701,8 @@ $def with (name)
               items[index] = player_stage
             }
           }
+          console.log("items[0] = " + items[0])
+          console.log("items[2] = " + items[2])
         })
         jaws.on_keydown(["enter","space"],  function()  { 
           jaws.switchGameState(Game) 
@@ -1663,7 +1738,9 @@ $def with (name)
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  (i == index) ? "Red" : "Black"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-          jaws.context.fillText(items[i], 225 + i * 60, 225)
+          var level_text = items[i]
+          if (i == 0 && items[i] == 0) level_text = "0"
+          jaws.context.fillText(level_text, 225 + i * 60, 225)
         }
 
         jaws.context.font = "bold 30pt terminal";
