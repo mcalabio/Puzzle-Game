@@ -54,6 +54,7 @@ $def with (name)
     var control_scheme = 2
     var game_mode = 1
     var game_record = ""
+    var level_edit = false
 
     function Game() {
       var player
@@ -61,6 +62,7 @@ $def with (name)
       var need_to_restart = false
       var game_end = ""
       var game_end_timer = 30
+      var level_editor
 
 
       /* Called once when a game state is activated. Use it for one-time setup code. */
@@ -76,6 +78,10 @@ $def with (name)
           player.board.fillLevel(player_level,player_stage)
         else
           player.board.fill(player_level,player_stage)
+
+        // level editor
+        if (level_edit)
+          level_editor = new LevelEditor(player.board)
 
         console.log("setup game")
         console.log("player_name = " + player_name)
@@ -198,6 +204,8 @@ $def with (name)
         // the viewport magic. wrap all draw()-calls inside viewport.apply and it will draw those relative to the viewport.
         viewport.apply( function() {
           player.draw()
+          if(level_edit)
+            level_editor.draw()
         });
       }
 
@@ -464,6 +472,62 @@ $def with (name)
             return
           this.cursor_top.draw()
           this.cursor_bottom.draw()
+        }
+
+      }
+
+      function LevelEditor(board) {
+
+        this.x = board.board.x + ITEM_WIDTH * (BOARD_WIDTH + 1)
+        this.y = board.board.y + ITEM_WIDTH * 2
+        this.board = new jaws.Sprite({x:this.x,y:this.y,image:"./static/images/BOARD.gif",anchor:"left"})
+        this.board.width = ITEM_WIDTH * 3
+        this.board.height = ITEM_WIDTH * 8
+
+        console.log("constructing level editor = (" + this.x + "," + this.y + ")")
+
+        this.flasks = new Array()
+        this.blocks = new Array()
+        this.robots = new Array()
+
+        // provide position with respect to this Board
+        this.posx = function(x) { return this.x + x * ITEM_WIDTH }
+        this.posy = function(y) { return this.y + (8 - 1 - y)*ITEM_WIDTH }
+
+        // flasks
+        for (var f = 0; f < 8; f++) {
+          this.flasks.push(new jaws.Sprite({x:this.posx(0),y:this.posy(f),image:"./static/images/POTION_" + COLORS[(f==6) ? 7 : ((f==7) ? 6 : f)] + ".gif",anchor:"left"}))
+        }
+
+        // blocks
+        for (var b = 0; b < 7; b++) {
+          this.blocks.push(new jaws.Sprite({x:this.posx(1),y:this.posy(b),image:"./static/images/" + COLORS[(b==6) ? 7: b] + ".gif",anchor:"left"}))
+          console.log("creating block_sprite = " + this.blocks[b])
+        }
+
+        for (var r = 0; r < 6; r++) {
+          // create sprite for this robot        
+          this.robots.push(new jaws.Sprite({x:this.posx(2),y:this.posy(r), anchor: "left"}))
+          var anim = new jaws.Animation({sprite_sheet: "./static/images/ROBOT_" + COLORS[r] + ".gif", frame_size: [40,40], frame_duration: 100})
+          this.robots[r].anim_default = anim.slice(0,5)
+          this.robots[r].setImage(this.robots[r].anim_default.next())
+          console.log("creating robot_sprite = " + this.robots[r])
+        }
+
+        this.draw = function() {
+
+          this.board.draw()
+
+          for (var f = 0; f < this.flasks.length; f++) {
+            this.flasks[f].draw()
+          }  
+          for (var b = 0; b < this.blocks.length; b++) {
+            this.blocks[b].draw()
+          }  
+          for (var r = 0; r < this.robots.length; r++) {
+            this.robots[r].draw()
+          }
+
         }
 
       }
@@ -866,7 +930,8 @@ $def with (name)
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  (game_end == "") ? "Black" : "Red"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-          jaws.context.fillText(this.player.timer.clock_text, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 125)
+          if (!level_edit)
+            jaws.context.fillText(this.player.timer.clock_text, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 125)
 
           // draw all effects on this board
           for (var e=0; e < this.effects.length; e++) {
@@ -1705,6 +1770,7 @@ $def with (name)
           console.log("items[2] = " + items[2])
         })
         jaws.on_keydown(["enter","space"],  function()  { 
+          level_edit = false
           jaws.switchGameState(Game) 
         } )
         
@@ -1727,6 +1793,12 @@ $def with (name)
         jaws.on_keydown(["m"], function() {
           if(game_mode == 1) game_mode = 2
           else if (game_mode == 2) game_mode  = 1
+        })
+
+        // game mode
+        jaws.on_keydown(["l"], function() {
+          level_edit = true
+          jaws.switchGameState(Game)
         })
       }
 
