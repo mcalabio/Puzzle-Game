@@ -166,7 +166,8 @@ $def with (name)
               player.drop(player.board.stacks[player.x],1)
             }
           })
-        } else if (control_scheme == 2) {
+        }
+        if (control_scheme == 2 || level_edit) {
 
           jaws.on_keydown(["left_mouse_button"], function() {
             var click_coordinates = new Array()
@@ -191,6 +192,8 @@ $def with (name)
         })    
 
         player.update()
+        if(level_edit)
+          level_editor.update()
 
         live_info.innerHTML = jaws.game_loop.fps + " fps. Player: " + parseInt(player.x) + "/" + parseInt(player.y) + ". "
         live_info.innerHTML += "Viewport: " + parseInt(viewport.x) + "/" + parseInt(viewport.y) + "."
@@ -362,57 +365,125 @@ $def with (name)
           var click_y = click_coordinates[1]
           right_click = typeof right_click !== 'undefined' ? right_click : false;
 
-          if (click_x < 0) click_x = 0
-          else if (click_x >= BOARD_WIDTH) click_x = BOARD_WIDTH-1
 
-          // move player cursor to clicked x coordinate
-          if (Math.abs(click_x - this.x) > 1) X_SPEED = FAST
-          else X_SPEED = SLOW
+          // normal gameplay
+          if (!level_edit) {
+            if (click_x < 0) click_x = 0
+            else if (click_x >= BOARD_WIDTH) click_x = BOARD_WIDTH-1
 
-          var this_stack = this.board.stacks[click_x]
-          var depth = 0
-          var old_x = this.x
+            // move player cursor to clicked x coordinate
+            if (Math.abs(click_x - this.x) > 1) X_SPEED = FAST
+            else X_SPEED = SLOW
 
-          // move the hand and catch if it hit a wall
-          var hit_wall = this.moveX_click(click_x - this.x)
-          this_stack = this.board.stacks[this.x] // update this_stack
+            var this_stack = this.board.stacks[click_x]
+            var depth = 0
+            var old_x = this.x
 
-          // grab if hand is empty
-          if (this.hand.items.length == 0) {
+            // move the hand and catch if it hit a wall
+            var hit_wall = this.moveX_click(click_x - this.x)
+            this_stack = this.board.stacks[this.x] // update this_stack
 
-            // grab if item on stack is clicked
-            if (right_click)
-              depth = this_stack.items.length
-            else if (this_stack.items.length >= click_y) {
-              depth = this_stack.items.length - click_y // how many items to grab
-            }
+            // grab if hand is empty
+            if (this.hand.items.length == 0) {
 
-            this.grab(this_stack,depth)
+              // grab if item on stack is clicked
+              if (right_click)
+                depth = this_stack.items.length
+              else if (this_stack.items.length >= click_y) {
+                depth = this_stack.items.length - click_y // how many items to grab
+              }
 
-          // drop if hand is holding items
-          } else {
+              this.grab(this_stack,depth)
 
-            // determine y coordinate of bottom of hand stack
-            var cutoff = BOARD_HEIGHT - this.hand.items.length
-            console.log("click_y = " + click_y)
-            console.log("cutoff = " + cutoff)
-            if (right_click)
-              depth = this.hand.items.length
-            else if (click_y < cutoff) {
-              depth = 1
-            } else if (old_x == click_x) {
-              depth = click_y - cutoff + 1
-            } else if (old_x != click_x) {
-              if (click_y == this_stack.items.length)
+            // drop if hand is holding items
+            } else {
+
+              // determine y coordinate of bottom of hand stack
+              var cutoff = BOARD_HEIGHT - this.hand.items.length
+              console.log("click_y = " + click_y)
+              console.log("cutoff = " + cutoff)
+              if (right_click)
+                depth = this.hand.items.length
+              else if (click_y < cutoff) {
                 depth = 1
+              } else if (old_x == click_x) {
+                depth = click_y - cutoff + 1
+              } else if (old_x != click_x) {
+                if (click_y == this_stack.items.length)
+                  depth = 1
+              }
+              if (hit_wall)
+               depth = 0
+              console.log("depth = " + depth)
+              this.drop(this_stack,depth)
+
             }
-            if (hit_wall)
-             depth = 0
-            console.log("depth = " + depth)
-            this.drop(this_stack,depth)
 
+          // controls for level editor
+          } else if (level_edit) {
+            var color
+
+            // catch clicks made in toolbox
+            if (click_x >= 7 && click_x <= 9) {
+
+              if (click_y >= 0 && click_y <= 5) {
+                color = click_y
+              } else if (click_y == 6) {
+                if (click_x <= 8)
+                  color = WHITE
+              } else if (click_y == 7) {
+                if (click_x == 7)
+                  color = EMPTY
+              }
+
+              if (click_x == 7) {
+                level_editor.hand = new jaws.Sprite(level_editor.flasks[click_y])
+                level_editor.hand.type = 1         
+              }
+              else if (click_x == 8) {
+                if (click_y > 6)
+                  return
+                level_editor.hand = new jaws.Sprite(level_editor.blocks[click_y])
+                level_editor.hand.type = 0
+              }
+              else if (click_x == 9) {    
+                if (click_y > 5)
+                  return            
+                level_editor.hand = new jaws.Sprite(level_editor.robots[click_y])
+                level_editor.hand.type = 2 
+              }
+              level_editor.hand.color = color
+
+              console.log("click with type = " + level_editor.hand.type + " and color = " + level_editor.hand.color)
+
+            // catch clicks made on board
+            } else if (click_x >=0 && click_x <= 5) {
+
+              var this_stack = player.board.stacks[click_x]
+              var cutoff = this_stack.items.length
+
+              if (right_click) {
+                // add item if above stack
+                if (click_y >= cutoff) {
+
+                  while (this_stack.items.length < BOARD_HEIGHT) {
+                    this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
+                  }
+
+                // remove item clicked
+                } else {
+
+                  this_stack.removeItem(this_stack.items[click_y])
+
+                }
+              // left click
+              } else {
+                if (this_stack.items.length < BOARD_HEIGHT) {
+                  this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
+                }
+              }              
+            }
           }
-
         }
 
 
@@ -484,8 +555,6 @@ $def with (name)
         this.board.width = ITEM_WIDTH * 3
         this.board.height = ITEM_WIDTH * 8
 
-        console.log("constructing level editor = (" + this.x + "," + this.y + ")")
-
         this.flasks = new Array()
         this.blocks = new Array()
         this.robots = new Array()
@@ -514,6 +583,15 @@ $def with (name)
           console.log("creating robot_sprite = " + this.robots[r])
         }
 
+        this.hand = new jaws.Sprite(this.flasks[this.flasks.length-1])
+        this.hand.type = 1
+        this.hand.color = EMPTY
+
+        this.update = function() {
+          this.hand.x = jaws.mouse_x - ITEM_WIDTH/2
+          this.hand.y = jaws.mouse_y - ITEM_WIDTH/2
+        }
+
         this.draw = function() {
 
           this.board.draw()
@@ -527,6 +605,8 @@ $def with (name)
           for (var r = 0; r < this.robots.length; r++) {
             this.robots[r].draw()
           }
+
+          this.hand.draw()
 
         }
 
@@ -1082,6 +1162,9 @@ $def with (name)
           } else if (old_item.type == 2) {
             this.board.robot_count[old_item.color]--
           }
+
+          if (level_edit)
+            return
 
           // check for win/lose only when blocks and robots are broken since flasks break first
           // but only check when items aren't breaking
