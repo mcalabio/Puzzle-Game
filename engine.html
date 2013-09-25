@@ -468,6 +468,9 @@ $def with (name)
             } else if (click_x >=0 && click_x <= 5) {
 
               var this_stack = player.board.stacks[click_x]
+              console.log("player = " + player)
+              console.log("player.board = " + player.board)
+              console.log("player.board.stacks = " + player.board.stacks)
               var cutoff = this_stack.items.length
 
               if (right_click) {
@@ -907,32 +910,41 @@ $def with (name)
 
           // lose condition: no more blocks/flasks to clear robots
           console.log("checking lose conditions")
+          var potential_white_potions = this.block_count[WHITE] / 3
           for (var c=0; c < 6; c++) {
             if (this.robot_count[c] > 0) {
               console.log("robots of color " + COLORS[c] + " still exist!")
               console.log("block count = " + this.block_count[c])
               console.log("flask_count = " + this.flask_count[c])
-              if (this.block_count[c] < 3 && this.flask_count[c] <= 0) {
-
-                console.log("lose!")
-                var record = buildRecordString(this,"L")
-                saveRecord(record)
-                game_end = "L"
-                return
+              if (this.flask_count[c] <= 0) {
+                if (this.block_count[c] < 3) {
+                  console.log("lose!")
+                  var record = buildRecordString(this,"L")
+                  saveRecord(record)
+                  game_end = "L"
+                  return
+                } else if (potential_white_potions < this.flask_count[EMPTY]){
+                  console.log("lose! not enough white blocks")
+                  var record = buildRecordString(this,"L")
+                  saveRecord(record)
+                  game_end = "L"
+                  return
+                } 
               }
+
             }
           }
 
-          // check for necessary amount of white blocks
-          var potential_white_potions = this.block_count[WHITE] / 3
-          // window.alert ("checking for lose condition with potential_white_potions = " + potential_white_potions)
-          if (potential_white_potions < this.flask_count[EMPTY]) {
-                console.log("lose! Not enough white blocks to clear robots.")
-                var record = buildRecordString(this,"L")
-                saveRecord(record)
-                game_end = "L"
-                return
-          }
+          // // check for necessary amount of white blocks
+          // var potential_white_potions = this.block_count[WHITE] / 3
+          // // window.alert ("checking for lose condition with potential_white_potions = " + potential_white_potions)
+          // if (potential_white_potions < this.flask_count[EMPTY]) {
+          //       console.log("lose! Not enough white blocks to clear robots.")
+          //       var record = buildRecordString(this,"L")
+          //       saveRecord(record)
+          //       game_end = "L"
+          //       return
+          // }
 
 
         }
