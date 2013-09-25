@@ -191,6 +191,14 @@ $def with (name)
           jaws.start(MenuState)
         })    
 
+        jaws.on_keydown("l", function() {
+          if (level_edit) {
+            saveLevel(player_stage,player.board,function() {
+              jaws.start(MenuState)
+            })
+          }
+        })
+
         player.update()
         if(level_edit)
           level_editor.update()
@@ -647,7 +655,7 @@ $def with (name)
             // go through each stack
             for (var s=0; s < BOARD_WIDTH; s++) {
 
-              console.log("what is this?? = " + this_board)
+              console.log("s = " + s)
               console.log("stack string = " + stacks_string[s])
 
               this_board.stacks.push(new Stack(this_board,level,s))
@@ -656,6 +664,10 @@ $def with (name)
 
               // go through each item
               items = stacks_string[s].split(',')
+              console.log("items = " + items)
+
+              if (items == "")
+                continue
 
               for (var i=0; i < items.length; i++) {
 
@@ -890,6 +902,7 @@ $def with (name)
             var record = buildRecordString(this,"W")
             saveRecord(record)
             game_end = "W"
+            return
           }
 
           // lose condition: no more blocks/flasks to clear robots
@@ -905,6 +918,7 @@ $def with (name)
                 var record = buildRecordString(this,"L")
                 saveRecord(record)
                 game_end = "L"
+                return
               }
             }
           }
@@ -917,6 +931,7 @@ $def with (name)
                 var record = buildRecordString(this,"L")
                 saveRecord(record)
                 game_end = "L"
+                return
           }
 
 
@@ -1791,6 +1806,51 @@ $def with (name)
 
     }
 
+    function saveLevel (level,board,callback) {
+
+      console.log("saving stage = " + level)
+
+      // construct level string
+      var level_string = ""
+
+      // go through each stack
+      console.log("stacks = " + board.stacks)
+      for (var s = 0; s < board.stacks.length; s++) {
+
+
+
+        var this_stack = board.stacks[s]
+        // go through each item in the stack
+        console.log("this_stack.items = " + this_stack.items)
+        for (var i = 0; i < this_stack.items.length; i++) {
+
+          var this_item = this_stack.items[i]
+          if (i>0) level_string = level_string + ","
+          level_string = level_string + this_item.type + "|" + this_item.color
+
+          console.log ("adding item, level_string = " + level_string)
+
+        }
+
+        level_string = level_string + "\n"
+
+      }
+
+      console.log("level_string = " + level_string)
+
+      var json_data = JSON.stringify({'type': "saveLevel", 'data': level_string, 'level': level})
+
+      jQuery.ajax({
+        type: "POST",
+        data: json_data,
+        success: function(data) {
+          window.alert("level saved to server: " + data)
+          callback()
+        }
+      })
+
+    }
+
     function loadLevel (level,board,callback) {
 
       var json_data = JSON.stringify({'type': "loadLevel", 'data': level})
@@ -1826,14 +1886,15 @@ $def with (name)
           if (index==0) {
             if (player_level < 6) {
               player_level++
-              items[index] = player_level
             }
           } else if (index==2) {
             if (player_stage < 6) {
               player_stage++
-              items[index] = player_stage
             }
           }
+          items[0] = player_level
+          items[2] = player_stage
+
           console.log("items[0] = " + items[0])
           console.log("items[2] = " + items[2])
         })
@@ -1841,14 +1902,15 @@ $def with (name)
           if (index==0) {
             if (player_level > 0) {
               player_level--
-              items[index] = player_level
             }
           } else if (index==2) {
             if (player_stage > 1) {
               player_stage--
-              items[index] = player_stage
             }
           }
+          items[0] = player_level
+          items[2] = player_stage
+
           console.log("items[0] = " + items[0])
           console.log("items[2] = " + items[2])
         })
@@ -1887,15 +1949,14 @@ $def with (name)
 
       this.draw = function() {
         jaws.context.clearRect(0,0,jaws.width,jaws.height)
-        for(var i=0; items[i]; i++) {
+
+        for(var i=0; i < items.length; i++) {
           // jaws.context.translate(0.5, 0.5)
           jaws.context.font = "bold 50pt terminal";
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  (i == index) ? "Red" : "Black"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-          var level_text = items[i]
-          if (i == 0 && items[i] == 0) level_text = "0"
-          jaws.context.fillText(level_text, 225 + i * 60, 225)
+          jaws.context.fillText(items[i], 225 + i * 60, 225)
         }
 
         jaws.context.font = "bold 30pt terminal";
