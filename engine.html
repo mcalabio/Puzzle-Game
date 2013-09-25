@@ -191,6 +191,10 @@ $def with (name)
           jaws.start(MenuState)
         })    
 
+        jaws.on_keydown(["p"], function() {
+          jaws.pause(Game)
+        })    
+
         jaws.on_keydown("l", function() {
           if (level_edit) {
             saveLevel(player_stage,player.board,function() {
@@ -910,7 +914,14 @@ $def with (name)
 
           // lose condition: no more blocks/flasks to clear robots
           console.log("checking lose conditions")
-          var potential_white_potions = this.block_count[WHITE] / 3
+          var remaining_robot_colors = 0
+          for (var c=0; c < 6; c++) {
+            if (this.robot_count[c] > 0)
+              remaining_robot_colors++
+            if (this.flask_count[c] > 0)
+              remaining_robot_colors --
+          }
+          var potential_white_potions = this.block_count[WHITE] / 3 + this.flask_count[WHITE]
           for (var c=0; c < 6; c++) {
             if (this.robot_count[c] > 0) {
               console.log("robots of color " + COLORS[c] + " still exist!")
@@ -918,13 +929,13 @@ $def with (name)
               console.log("flask_count = " + this.flask_count[c])
               if (this.flask_count[c] <= 0) {
                 if (this.block_count[c] < 3) {
-                  console.log("lose!")
+                  console.log("lose! here")
                   var record = buildRecordString(this,"L")
                   saveRecord(record)
                   game_end = "L"
                   return
-                } else if (potential_white_potions < this.flask_count[EMPTY]){
-                  console.log("lose! not enough white blocks")
+                } else if (potential_white_potions < remaining_robot_colors){
+                  console.log("lose! not enough white blocks, checking color = " + COLORS[c])
                   var record = buildRecordString(this,"L")
                   saveRecord(record)
                   game_end = "L"
