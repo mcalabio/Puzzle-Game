@@ -752,15 +752,31 @@ $def with (name)
             // remove item clicked on stack
             } else {
 
+              var this_item = this_stack.items[click_y]
+
               if (right_click) {
 
               } else {
 
                 // TODO: check for matches (make a new one for all types of items)
-                this_stack.removeItem(this_stack.items[click_y])
+                this_stack.removeItem(this_item)
 
               }
 
+              var sprite_stack = (this_item.type == 0) ? this.blocks : (
+                (this_item.type == 1) ? this.flasks : this.robots
+                )
+
+              if(this_item.color == WHITE)
+                color = 6
+              else if (this_item.color == EMPTY)
+                color = 7
+              else
+                color = this_item.color
+
+              this.hand = new jaws.Sprite(sprite_stack[color])
+              this.hand.type = this_item.type
+              this.hand.color = this_item.color
 
             }              
           }
