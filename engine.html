@@ -471,85 +471,9 @@ $def with (name)
 
           // controls for level editor
           } else if (level_edit) {
-            var color
 
-            // catch clicks made in toolbox
-            if (click_x >= 7 && click_x <= 9) {
+            level_editor.controls(click_x, click_y, right_click)
 
-              if (click_y >= 0 && click_y <= 5) {
-                color = click_y
-              } else if (click_y == 6) {
-                if (click_x <= 8)
-                  color = WHITE
-              } else if (click_y == 7) {
-                if (click_x == 7)
-                  color = EMPTY
-              }
-
-              if (click_x == 7) {
-                level_editor.hand = new jaws.Sprite(level_editor.flasks[click_y])
-                level_editor.hand.type = 1         
-              }
-              else if (click_x == 8) {
-                if (click_y > 6)
-                  return
-                level_editor.hand = new jaws.Sprite(level_editor.blocks[click_y])
-                level_editor.hand.type = 0
-              }
-              else if (click_x == 9) {    
-                if (click_y > 5)
-                  return            
-                level_editor.hand = new jaws.Sprite(level_editor.robots[click_y])
-                level_editor.hand.type = 2 
-              }
-              level_editor.hand.color = color
-
-              console.log("click with type = " + level_editor.hand.type + " and color = " + level_editor.hand.color)
-
-            // catch clicks made on board
-            } else if (click_x >=0 && click_x <= 5) {
-
-              var this_stack = player.board.stacks[click_x]
-              console.log("player = " + player)
-              console.log("player.board = " + player.board)
-              console.log("player.board.stacks = " + player.board.stacks)
-              var cutoff = this_stack.items.length
-
-              if (right_click) {
-                // add item if above stack
-                if (click_y >= cutoff) {
-
-                  while (this_stack.items.length < BOARD_HEIGHT) {
-                    this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
-
-                    // items fall after spawn
-                    var this_item = this_stack.items[this_stack.items.length-1]
-                    console.log("this_item = " + this_item)
-                    this_item.sprite.x = this.board.posx(click_x)
-                    this_item.sprite.y = this.board.posy(click_y)
-
-                  }
-
-                // remove item clicked
-                } else {
-
-                  // TODO: check for matches (make a new one for all types of items)
-                  this_stack.removeItem(this_stack.items[click_y])
-
-                }
-              // left click
-              } else {
-                if (this_stack.items.length < BOARD_HEIGHT) {
-                  this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
-
-                    // items fall after spawn
-                    var this_item = this_stack.items[this_stack.items.length-1]
-                    console.log("this_item = " + this_item)
-                    this_item.sprite.x = this.board.posx(click_x)
-                    this_item.sprite.y = this.board.posy(click_y)
-                }
-              }              
-            }
           }
         }
 
@@ -745,6 +669,102 @@ $def with (name)
         this.hand = new jaws.Sprite(this.flasks[this.flasks.length-1])
         this.hand.type = 1
         this.hand.color = EMPTY
+
+        this.controls = function(click_x, click_y, right_click) {
+          var color
+
+          // catch clicks made in toolbox
+          if (click_x >= 7 && click_x <= 9) {
+
+            if (click_y >= 0 && click_y <= 5) {
+              color = click_y
+            } else if (click_y == 6) {
+              if (click_x <= 8)
+                color = WHITE
+            } else if (click_y == 7) {
+              if (click_x == 7)
+                color = EMPTY
+            }
+
+            if (click_x == 7) {
+              level_editor.hand = new jaws.Sprite(level_editor.flasks[click_y])
+              level_editor.hand.type = 1         
+            }
+            else if (click_x == 8) {
+              if (click_y > 6)
+                return
+              level_editor.hand = new jaws.Sprite(level_editor.blocks[click_y])
+              level_editor.hand.type = 0
+            }
+            else if (click_x == 9) {    
+              if (click_y > 5)
+                return            
+              level_editor.hand = new jaws.Sprite(level_editor.robots[click_y])
+              level_editor.hand.type = 2 
+            }
+            level_editor.hand.color = color
+
+            console.log("click with type = " + level_editor.hand.type + " and color = " + level_editor.hand.color)
+
+          // catch clicks made on board
+          } else if (click_x >=0 && click_x <= 5) {
+
+            var this_stack = player.board.stacks[click_x]
+            console.log("player = " + player)
+            console.log("player.board = " + player.board)
+            console.log("player.board.stacks = " + player.board.stacks)
+            var cutoff = this_stack.items.length
+
+            // add item if above stack
+            if (click_y >= cutoff) {
+
+              if (right_click) {
+
+                while (this_stack.items.length < BOARD_HEIGHT) {
+                  this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
+
+                  // items fall after spawn
+                  var this_item = this_stack.items[this_stack.items.length-1]
+                  console.log("this_item = " + this_item)
+                  this_item.sprite.x = player.board.posx(click_x)
+                  this_item.sprite.y = player.board.posy(click_y)
+
+                }
+
+              // remove item clicked
+              } else {
+
+                if (this_stack.items.length < BOARD_HEIGHT) {
+                  this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
+
+                  // items fall after spawn
+                  var this_item = this_stack.items[this_stack.items.length-1]
+                  console.log("this_item = " + this_item)
+                  this_item.sprite.x = player.board.posx(click_x)
+                  this_item.sprite.y = player.board.posy(click_y)
+
+                  // add splash
+                  // player.board.effects.push(new Splash(this_stack,this_item.type,this_item.color,click_x,click_y,0))
+                }
+
+              }
+            
+            // remove item clicked on stack
+            } else {
+
+              if (right_click) {
+
+              } else {
+
+                // TODO: check for matches (make a new one for all types of items)
+                this_stack.removeItem(this_stack.items[click_y])
+
+              }
+
+
+            }              
+          }
+        }
 
         this.update = function() {
           this.hand.x = jaws.mouse_x - ITEM_WIDTH/2
@@ -1454,7 +1474,7 @@ $def with (name)
 
             this_robot.breaking = true
 
-            // will put splashes here
+            // put splashes here
             var robot_delay = this_robot.deathcounter + this_robot.splash_order
             this.board.effects.push(new Splash(this,this_robot.type,this_robot.color,this_robot.x,this_robot.y,robot_delay))
 
