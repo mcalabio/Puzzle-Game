@@ -55,6 +55,7 @@ $def with (name)
     var game_mode = 1
     var game_record = ""
     var level_edit = false
+    var pause = false
 
     function Game() {
       var player
@@ -106,6 +107,7 @@ $def with (name)
         // Player Controls
         if (control_scheme == 1) {
           jaws.on_keydown(["left","a"], function() {
+            if (pause) return
             X_SPEED = SLOW
             if(player.x > 0) {
               if (player.canMoveX(-1)) player.moveX(-1)
@@ -121,6 +123,7 @@ $def with (name)
             console.log("player (" + player.x + " , " + player.y + ")")
           })
           jaws.on_keydown(["right","d"], function() {
+            if (pause) return
             X_SPEED = SLOW
             if(player.x < BOARD_WIDTH - 1) {
               if (player.canMoveX(1)) player.moveX(1)
@@ -137,10 +140,13 @@ $def with (name)
             console.log("player (" + player.x + " , " + player.y + ")")
           })
           jaws.on_keydown(["up","w"], function() {
+            if (pause) return
             if(player.y < BOARD_HEIGHT-1)player.y += 1
             console.log("player (" + player.x + " , " + player.y + ")")
           })
           jaws.on_keydown(["down","s"], function() {
+
+            if (pause) return
 
             if(player.hand.items.length>0) {
               player.drop(player.board.stacks[player.x],player.hand.items.length)              
@@ -150,6 +156,7 @@ $def with (name)
             console.log("player (" + player.x + " , " + player.y + ")")
           })
           jaws.on_keydown(["z","k"], function() {
+            if (pause) return
             if(player.hand.items.length == 0) {          
               player.grab(player.board.stacks[player.x],player.board.stacks[player.x].items.length)
             } else {
@@ -157,6 +164,7 @@ $def with (name)
             }
           })
           jaws.on_keydown(["x","j","space"], function() {
+            if (pause) return
             if(player.hand.items.length == 0) {
               //grab depth determined by cursor y-position
               var depth = player.board.stacks[player.x].items.length - player.y
@@ -170,6 +178,7 @@ $def with (name)
         if (control_scheme == 2 || level_edit) {
 
           jaws.on_keydown(["left_mouse_button"], function() {
+            if (pause) return
             var click_coordinates = new Array()
             click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
             console.log("click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
@@ -177,6 +186,7 @@ $def with (name)
           })
 
           jaws.on_keydown(["right_mouse_button"], function() {
+            if (pause) return
             var click_coordinates = new Array()
             click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
             console.log("right click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
@@ -192,7 +202,7 @@ $def with (name)
         })    
 
         jaws.on_keydown(["p"], function() {
-          jaws.pause(Game)
+          pauseGame()
         })    
 
         jaws.on_keydown("l", function() {
@@ -531,6 +541,9 @@ $def with (name)
         // update player sprites, board sprites, etc.
         this.update = function() {
 
+          if (pause)
+            return
+
           // update timer
           this.timer.update()
 
@@ -550,7 +563,12 @@ $def with (name)
 
         // draw everything that was just updated
         this.draw = function() {
+
           this.board.draw()
+
+          if (pause)
+            return
+
           this.hand.draw()
           // jaws.context.drawImage(jaws.assets.get("images/cursor.gif"), this.cursor.x, this.cursor.y)
 
@@ -1027,11 +1045,6 @@ $def with (name)
         this.draw = function() {
           jaws.context.drawImage(jaws.assets.get("./static/images/BOARD.gif"), this.board.x, this.board.y )
 
-          // draw all stacks in this board and containing items
-          for (var i=0; i < this.stacks.length; i++) {
-            this.stacks[i].draw()
-          }
-
           jaws.context.font = "bold 25pt terminal";
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  "Black"
@@ -1050,6 +1063,14 @@ $def with (name)
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
           if (!level_edit)
             jaws.context.fillText(this.player.timer.clock_text, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 125)
+
+          if (pause)
+            return
+
+          // draw all stacks in this board and containing items
+          for (var i=0; i < this.stacks.length; i++) {
+            this.stacks[i].draw()
+          }
 
           // draw all effects on this board
           for (var e=0; e < this.effects.length; e++) {
@@ -1785,6 +1806,15 @@ $def with (name)
         else sprite.y -= y_speed
       }
     
+    }
+
+    function pauseGame () {
+      if (pause)
+        pause = false
+      else
+        pause = true
+
+      console.log("pause = " + pause)
     }
 
     function fisherYates ( myArray ) {
