@@ -82,7 +82,21 @@ $def with (name)
           player.board.fill(player_level,player_stage)
 
         // pause menu
-        pause_menu = new MenuBox("pause",player.board.board.x,player.board.board.y,BOARD_WIDTH*ITEM_WIDTH,30)
+        pause_menu = new MenuBox("pause",player.board.board.x,player.board.board.y,4*ITEM_WIDTH,ITEM_WIDTH*3)
+
+        // pause menu items
+        pause_menu.items.push(new MenuItem(pause_menu,"Resume",function() {
+          pause = false
+        }))
+        pause_menu.items.push(new MenuItem(pause_menu,"Restart",function(stuff) {
+          console.log(stuff)
+          stuff().Start(Game)
+        }))
+        pause_menu.items.push(new MenuItem(pause_menu,"Quit",function(jaws) {
+          jaws.Start(MenuState)
+        }))
+
+        console.log("menu items = " + pause_menu.items)
 
         // level editor
         if (level_edit)
@@ -109,94 +123,10 @@ $def with (name)
           player.board.winLose()
 
         // Player Controls
-        if (control_scheme == 1) {
-          jaws.on_keydown(["left","a"], function() {
-            if (pause) return
-            X_SPEED = SLOW
-            if(player.x > 0) {
-              if (player.canMoveX(-1)) player.moveX(-1)
-              else {
-                // drop minimum amount of items on hand so hand can move left
-                var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length)
-                if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length > 0) {
-                  player.drop(player.board.stacks[player.x],drop_amount)
-                  player.moveX(-1)
-                }
-              }
-            } 
-            console.log("player (" + player.x + " , " + player.y + ")")
-          })
-          jaws.on_keydown(["right","d"], function() {
-            if (pause) return
-            X_SPEED = SLOW
-            if(player.x < BOARD_WIDTH - 1) {
-              if (player.canMoveX(1)) player.moveX(1)
-              else {
-                // drop minimum amount of items on hand so hand can move right
-                var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length)
-                if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length > 0) {
-                  player.drop(player.board.stacks[player.x],drop_amount)
-                  player.moveX(1)
-                }
+        player.controls()
 
-              }
-            } 
-            console.log("player (" + player.x + " , " + player.y + ")")
-          })
-          jaws.on_keydown(["up","w"], function() {
-            if (pause) return
-            if(player.y < BOARD_HEIGHT-1)player.y += 1
-            console.log("player (" + player.x + " , " + player.y + ")")
-          })
-          jaws.on_keydown(["down","s"], function() {
-
-            if (pause) return
-
-            if(player.hand.items.length>0) {
-              player.drop(player.board.stacks[player.x],player.hand.items.length)              
-            } else if(player.y > 0) player.y -= 1
-
-
-            console.log("player (" + player.x + " , " + player.y + ")")
-          })
-          jaws.on_keydown(["z","k"], function() {
-            if (pause) return
-            if(player.hand.items.length == 0) {          
-              player.grab(player.board.stacks[player.x],player.board.stacks[player.x].items.length)
-            } else {
-              player.drop(player.board.stacks[player.x],player.hand.items.length)
-            }
-          })
-          jaws.on_keydown(["x","j","space"], function() {
-            if (pause) return
-            if(player.hand.items.length == 0) {
-              //grab depth determined by cursor y-position
-              var depth = player.board.stacks[player.x].items.length - player.y
-              player.grab(player.board.stacks[player.x],depth)
-            } else {
-              //drop
-              player.drop(player.board.stacks[player.x],1)
-            }
-          })
-        }
-        if (control_scheme == 2 || level_edit) {
-
-          jaws.on_keydown(["left_mouse_button"], function() {
-            if (pause) return
-            var click_coordinates = new Array()
-            click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
-            console.log("click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
-            player.clickAction(click_coordinates)
-          })
-
-          jaws.on_keydown(["right_mouse_button"], function() {
-            if (pause) return
-            var click_coordinates = new Array()
-            click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
-            console.log("right click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
-            player.clickAction(click_coordinates,true)
-          })
-        }
+        if (pause)
+          pause_menu.controls(pause_menu)
 
         jaws.on_keydown("r", function() {
           jaws.start(Game)
@@ -260,6 +190,100 @@ $def with (name)
 
         // player timer
         this.timer = new Timer(this)
+
+        // player controls
+        this.controls = function() {
+
+          if (control_scheme == 1) {
+            jaws.on_keydown(["left","a"], function() {
+              if (pause) return
+              X_SPEED = SLOW
+              if(player.x > 0) {
+                if (player.canMoveX(-1)) player.moveX(-1)
+                else {
+                  // drop minimum amount of items on hand so hand can move left
+                  var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length)
+                  if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x - 1].items.length > 0) {
+                    player.drop(player.board.stacks[player.x],drop_amount)
+                    player.moveX(-1)
+                  }
+                }
+              } 
+              console.log("player (" + player.x + " , " + player.y + ")")
+            })
+            jaws.on_keydown(["right","d"], function() {
+              if (pause) return
+              X_SPEED = SLOW
+              if(player.x < BOARD_WIDTH - 1) {
+                if (player.canMoveX(1)) player.moveX(1)
+                else {
+                  // drop minimum amount of items on hand so hand can move right
+                  var drop_amount = player.hand.items.length - (BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length)
+                  if (drop_amount > 0 && BOARD_HEIGHT - player.board.stacks[player.x + 1].items.length > 0) {
+                    player.drop(player.board.stacks[player.x],drop_amount)
+                    player.moveX(1)
+                  }
+
+                }
+              } 
+              console.log("player (" + player.x + " , " + player.y + ")")
+            })
+            jaws.on_keydown(["up","w"], function() {
+              if (pause) return
+              if(player.y < BOARD_HEIGHT-1)player.y += 1
+              console.log("player (" + player.x + " , " + player.y + ")")
+            })
+            jaws.on_keydown(["down","s"], function() {
+
+              if (pause) return
+
+              if(player.hand.items.length>0) {
+                player.drop(player.board.stacks[player.x],player.hand.items.length)              
+              } else if(player.y > 0) player.y -= 1
+
+
+              console.log("player (" + player.x + " , " + player.y + ")")
+            })
+            jaws.on_keydown(["z","k"], function() {
+              if (pause) return
+              if(player.hand.items.length == 0) {          
+                player.grab(player.board.stacks[player.x],player.board.stacks[player.x].items.length)
+              } else {
+                player.drop(player.board.stacks[player.x],player.hand.items.length)
+              }
+            })
+            jaws.on_keydown(["x","j","space"], function() {
+              if (pause) return
+              if(player.hand.items.length == 0) {
+                //grab depth determined by cursor y-position
+                var depth = player.board.stacks[player.x].items.length - player.y
+                player.grab(player.board.stacks[player.x],depth)
+              } else {
+                //drop
+                player.drop(player.board.stacks[player.x],1)
+              }
+            })
+          }
+          if (control_scheme == 2 || level_edit) {
+
+            jaws.on_keydown(["left_mouse_button"], function() {
+              if (pause) return
+              var click_coordinates = new Array()
+              click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
+              console.log("click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
+              player.clickAction(click_coordinates)
+            })
+
+            jaws.on_keydown(["right_mouse_button"], function() {
+              if (pause) return
+              var click_coordinates = new Array()
+              click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
+              console.log("right click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
+              player.clickAction(click_coordinates,true)
+            })
+          }
+
+        }
 
         // check if player hand can move in x direction
         this.canMoveX = function(x) {
@@ -584,6 +608,14 @@ $def with (name)
 
       }
 
+      function MenuItem(menu,text,action) {
+
+        this.menu = menu
+        this.text = text
+        this.action = action
+
+      }
+
       function MenuBox(title,x,y,width,height) {
 
         console.log("constructing menubox at (" + x + "," + y + ")")
@@ -596,6 +628,7 @@ $def with (name)
         this.x = x
         this.y = y
         this.items = new Array() // menu items
+        this.index = 0 // item currently chosen
 
         this.sprite_sheet = new jaws.SpriteSheet({
           image: "./static/images/MENUBOX_SPRITES.gif", frame_size: [SPRITE_WIDTH,SPRITE_WIDTH]})
@@ -616,10 +649,25 @@ $def with (name)
         this.sprite_n.width = this.sprite_s.width = edge_width
         this.sprite_w.height = this.sprite_e.height = edge_height
 
+        this.controls = function(menu) {
 
+          jaws.on_keydown(["up","w"], function() {            
+            if (menu.index > 0) menu.index-- 
+          })
+
+          jaws.on_keydown(["down","s"], function() {
+            if (menu.index < menu.items.length - 1) menu.index++ 
+          })
+
+          jaws.on_keydown(["space"], function() {
+            menu.items[menu.index].action(jaws)
+          })
+
+        }
 
         this.draw = function() {
 
+          // draw edges
           this.sprite_nw.draw()
           this.sprite_n.draw()
           this.sprite_ne.draw()
@@ -628,6 +676,17 @@ $def with (name)
           this.sprite_sw.draw()
           this.sprite_s.draw()
           this.sprite_se.draw()
+
+          // draw menu items
+          for (var i=0; i < this.items.length; i++) {
+
+            jaws.context.font = "bold 12pt Monaco";
+            jaws.context.lineWidth = 10
+            jaws.context.fillStyle =  (this.index == i) ? "Red" : "White"
+            jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+            jaws.context.fillText(this.items[i].text, this.x + 25, this.y + 25 * (i + 1))
+
+          }
 
         }
 
