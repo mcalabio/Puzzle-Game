@@ -521,11 +521,19 @@ $def with (name)
 
                   while (this_stack.items.length < BOARD_HEIGHT) {
                     this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
+
+                    // items fall after spawn
+                    var this_item = this_stack.items[this_stack.items.length-1]
+                    console.log("this_item = " + this_item)
+                    this_item.sprite.x = this.board.posx(click_x)
+                    this_item.sprite.y = this.board.posy(click_y)
+
                   }
 
                 // remove item clicked
                 } else {
 
+                  // TODO: check for matches (make a new one for all types of items)
                   this_stack.removeItem(this_stack.items[click_y])
 
                 }
@@ -533,6 +541,12 @@ $def with (name)
               } else {
                 if (this_stack.items.length < BOARD_HEIGHT) {
                   this_stack.items.push(new Item(this_stack,level_editor.hand.type,level_editor.hand.color,click_x,this_stack.items.length))
+
+                    // items fall after spawn
+                    var this_item = this_stack.items[this_stack.items.length-1]
+                    console.log("this_item = " + this_item)
+                    this_item.sprite.x = this.board.posx(click_x)
+                    this_item.sprite.y = this.board.posy(click_y)
                 }
               }              
             }
@@ -1237,6 +1251,7 @@ $def with (name)
                 match_found = true
                 // item.chain = chain
               }
+
               matches = new Array()
               matches.push(item)
             }
@@ -1299,20 +1314,6 @@ $def with (name)
 
         }
 
-        // CURRENTLY NOT BEING USED
-        this.removeItems = function(old_items) {
-          this.items.splice(old_items[0].y,old_items.length)
-          console.log("removing " + old_items[0].y,old_items.length)
-
-          for (var i=0; i<this.items.length; i++) {
-            var item = this.items[i]
-
-            // drop item down if above old_items
-            if (item.y > old_items[0].y) item.y -= old_items.length             
-            item.sprite.dy = this.board.posy(item.y) // update sprite destination
-          }
-        }
-
         this.removeItem = function(old_item) {
 
           console.log("removing (" + old_item.type + ") of color (" + old_item.color + ")")
@@ -1372,6 +1373,16 @@ $def with (name)
 
         }
 
+        // CURRENTLY NOT BEING USED
+        this.removeItems = function(old_items) {
+
+          for (var i=0; i<old_items.length; i++) {
+
+            this.removeItem(old_items[i])
+
+          }
+        }
+
         this.shedRobot = function(old_item) {
 
           // sanity check!!!!!!!
@@ -1381,7 +1392,7 @@ $def with (name)
           console.log("shedding (" + old_item.type + ") of color (" + old_item.color + ")")
 
           // remove old item from items array
-          // TODO: replace robot with color of (old_item.color - 3)
+          // replace robot with color of (old_item.color - 3)
           this.items.splice(old_item.y,1,new Item(this,2,old_item.color-3,old_item.x,old_item.y))
 
           // update board count
