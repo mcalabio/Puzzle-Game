@@ -756,6 +756,46 @@ $def with (name)
 
               if (right_click) {
 
+                var matches = new Array()
+                var last_match = this_stack.items[0]
+                var this_match
+                var touched_this_item = false
+
+                matches.push(last_match)
+                console.log("pushing onto matches: (" + last_match.type + "," + last_match.color + ")")
+
+                // THIS WAS DONE WITH TRIAL AND ERROR. TODO: COMMENTS
+                for (var i=1; i < this_stack.items.length; i++) {
+
+                  console.log("i = " + i)
+
+                  this_match = this_stack.items[i]
+
+                  if (this_match.type==last_match.type && this_match.color==last_match.color) {
+                    matches.push(this_match)
+                    console.log("pushing onto matches: (" + this_match.type + "," + this_match.color + ")")
+                    last_match = this_match
+                  } else {
+
+                    if (i > click_y)
+                      touched_this_item = true
+
+                    if (!touched_this_item) {
+                      matches = new Array()
+                      matches.push(this_match)
+                      console.log("pushing onto matches: (" + this_match.type + "," + this_match.color + ")")
+                      last_match = this_match
+                    } else {
+                      break
+                    }
+
+                  }
+
+                }
+
+                console.log("matches = " + matches)
+                this_stack.removeItems(matches)
+
               } else {
 
                 // TODO: check for matches (make a new one for all types of items)
