@@ -2428,7 +2428,54 @@ $def with (name)
         console.log("player_name = " + player_name)
       }
 
+      var name_text = "       " + player_name
+      if (player_name.length < 10) name_text = name_text + "_"
+
+      var enter_name = new MenuBox("Enter Name",ITEM_WIDTH,ITEM_WIDTH,300,75)
+        enter_name.items.push(new MenuItem(enter_name,"Please enter your name: ",function(){return
+        }))
+        enter_name.items.push(new MenuItem(enter_name,name_text,function(){
+          return
+        }))
+        enter_name.index = 1
+
       this.setup = function() {
+
+        this.controls()
+      }
+
+      this.draw = function() {
+
+        jaws.context.clearRect(0,0,jaws.width,jaws.height)
+
+        jaws.context.fillStyle = "Black"
+        jaws.context.fillRect(0,0,jaws.width,jaws.height)
+
+        // update name_text
+        name_text = "       " + player_name
+        if (player_name.length < 10) name_text = name_text + "_"
+        enter_name.items[1].text = name_text
+        enter_name.draw()
+
+        jaws.context.font = "bold 30pt terminal";
+        jaws.context.lineWidth = 10
+        jaws.context.fillStyle =  "Black"
+        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+        jaws.context.fillText("Please enter your name:", 125, 225)
+
+        jaws.context.font = "bold 30pt terminal";
+        jaws.context.lineWidth = 10
+        jaws.context.fillStyle =  "Black"
+        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+
+        var name_text = player_name
+        if (player_name.length < 10) name_text += "_"
+
+        jaws.context.fillText(name_text, 210, 275)  
+      }
+
+      this.controls = function() {
+
 
         var shift = false
 
@@ -2670,29 +2717,6 @@ $def with (name)
             player_name += (shift) ? "(" : "9"
           messageConsole()
         })
-
-
-      }
-
-      this.draw = function() {
-
-        jaws.context.clearRect(0,0,jaws.width,jaws.height)
-
-        jaws.context.font = "bold 30pt terminal";
-        jaws.context.lineWidth = 10
-        jaws.context.fillStyle =  "Black"
-        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-        jaws.context.fillText("Please enter your name:", 125, 225)
-
-        jaws.context.font = "bold 30pt terminal";
-        jaws.context.lineWidth = 10
-        jaws.context.fillStyle =  "Black"
-        jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-
-        var name_text = player_name
-        if (player_name.length < 10) name_text += "_"
-
-        jaws.context.fillText(name_text, 210, 275)  
       }
     }    
     
