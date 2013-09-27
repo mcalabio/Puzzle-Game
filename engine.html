@@ -96,7 +96,7 @@ $def with (name)
           jaws.start(Game)
         }))
         pause_menu.items.push(new MenuItem(pause_menu,"Quit",function(jaws) {
-          jaws.start(MenuState)
+          jaws.start(MainMenu)
         }))
 
         console.log("menu items = " + pause_menu.items)
@@ -142,7 +142,7 @@ $def with (name)
 
           jaws.on_keydown("l", function() {
             if (level_edit) {
-              saveLevel(player_stage,player.board,function() {
+              saveLevel(player_level,player_stage,player.board,function() {
                 jaws.start(MenuState)
               })
             }
@@ -879,7 +879,7 @@ $def with (name)
 
         this.fillLevel = function(level,stage) {
 
-          loadLevel(stage, this, function(data, this_board) {
+          loadLevel(level,stage, this, function(data, this_board) {
             var stacks_string = data.split('\n')
 
             // console.log("string_string = " + string_string)
@@ -2074,9 +2074,9 @@ $def with (name)
 
     }
 
-    function saveLevel (level,board,callback) {
+    function saveLevel (level,stage,board,callback) {
 
-      console.log("saving stage = " + level)
+      console.log("saving stage = " + level + "-" + stage)
 
       // construct level string
       var level_string = ""
@@ -2106,7 +2106,7 @@ $def with (name)
 
       console.log("level_string = " + level_string)
 
-      var json_data = JSON.stringify({'type': "saveLevel", 'data': level_string, 'level': level})
+      var json_data = JSON.stringify({'type': "saveLevel", 'data': level_string, 'level': [level,stage]})
 
       jQuery.ajax({
         type: "POST",
@@ -2119,9 +2119,9 @@ $def with (name)
 
     }
 
-    function loadLevel (level,board,callback) {
+    function loadLevel (level,stage,board,callback) {
 
-      var json_data = JSON.stringify({'type': "loadLevel", 'data': level})
+      var json_data = JSON.stringify({'type': "loadLevel", 'level': [level,stage]})
 
       console.log("loading stage = " + level)
       jQuery.ajax({
@@ -2135,6 +2135,176 @@ $def with (name)
 
     }
 
+    function MenuItem(menu,text,action) {
+
+      this.menu = menu
+      this.text = text
+      this.action = action
+
+    }
+
+    function MenuBox(title,x,y,width,height) {
+
+      console.log("constructing menubox at (" + x + "," + y + ")")
+
+
+      var SPRITE_WIDTH = 10
+
+      this.title = title
+
+      this.x = x
+      this.y = y
+      this.width = width
+      this.height = height
+      this.items = new Array() // menu items
+      this.index = 0 // item currently chosen
+      this.back
+
+      this.sprite_sheet = new jaws.SpriteSheet({
+        image: "./static/images/MENUBOX_SPRITES.gif", frame_size: [SPRITE_WIDTH,SPRITE_WIDTH]})
+
+      var edge_width  = width - SPRITE_WIDTH*2
+      var edge_height = height - SPRITE_WIDTH*2
+
+      this.sprite_nw = new jaws.Sprite({x:x, y:y, image: this.sprite_sheet.frames[0]})
+      this.sprite_n = new jaws.Sprite({x:x + SPRITE_WIDTH, y:y, image: this.sprite_sheet.frames[1]})
+      this.sprite_ne = new jaws.Sprite({x:x + SPRITE_WIDTH + edge_width, y:y, image: this.sprite_sheet.frames[2]})
+      this.sprite_w = new jaws.Sprite({x:x, y:y + SPRITE_WIDTH, image: this.sprite_sheet.frames[3]})
+      this.sprite_e = new jaws.Sprite({x:x + SPRITE_WIDTH + edge_width, y:y + SPRITE_WIDTH, image: this.sprite_sheet.frames[4]})
+      this.sprite_sw = new jaws.Sprite({x:x, y:y + SPRITE_WIDTH + edge_height, image: this.sprite_sheet.frames[5]})
+      this.sprite_s = new jaws.Sprite({x:x + SPRITE_WIDTH, y:y + SPRITE_WIDTH + edge_height, image: this.sprite_sheet.frames[6]})
+      this.sprite_se = new jaws.Sprite({x:x + SPRITE_WIDTH + edge_width, y:y + SPRITE_WIDTH + edge_height, image: this.sprite_sheet.frames[7]})
+
+      // fix widths and heights for edges
+      this.sprite_n.width = this.sprite_s.width = edge_width
+      this.sprite_w.height = this.sprite_e.height = edge_height
+
+      this.controls = function(menu) {
+
+        jaws.on_keydown(["up","w"], function() {            
+          if (menu.index > 0) menu.index-- 
+        })
+
+        jaws.on_keydown(["down","s"], function() {
+          if (menu.index < menu.items.length - 1) menu.index++ 
+        })
+
+        jaws.on_keydown(["enter","space"], function() {
+          menu.items[menu.index].action(jaws)
+        })
+
+        jaws.on_keydown(["esc","a","left"], function() {
+          menu.back()
+        })
+
+      }
+
+      this.draw = function() {
+
+        // draw edges
+        this.sprite_nw.draw()
+        this.sprite_n.draw()
+        this.sprite_ne.draw()
+        this.sprite_w.draw()
+        this.sprite_e.draw()
+        this.sprite_sw.draw()
+        this.sprite_s.draw()
+        this.sprite_se.draw()
+
+        // draw menu items
+        for (var i=0; i < this.items.length; i++) {
+
+          jaws.context.font = "bold 12pt Monaco";
+          jaws.context.lineWidth = 10
+          jaws.context.fillStyle =  (this.index == i) ? "Red" : "White"
+          jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
+          jaws.context.fillText(this.items[i].text, this.x + 25, this.y + 25 * (i + 1))
+
+        }
+
+      }
+
+    }
+
+    function MainMenu() {
+
+      var menus = new Array()
+
+      this.setup = function() {
+
+        var active_menu
+
+        // main menu
+        var main_menu = new MenuBox("Select Mode",ITEM_WIDTH,ITEM_WIDTH,200,100)
+        main_menu.items.push(new MenuItem(main_menu,"Begin Game",function() {
+          level_edit = false
+          jaws.start(Game)
+        }))
+        main_menu.items.push(new MenuItem(main_menu,"Level Editor",function() {
+          level_edit = true
+          jaws.start(Game)
+        }))
+        main_menu.items.push(new MenuItem(main_menu,"Options Mode",function() {
+          menus.push(options_menu)
+          active_menu = options_menu
+          active_menu.controls(active_menu)
+        }))
+
+        menus.push(main_menu)
+        active_menu = main_menu
+
+        // options menu
+        var options_menu = new MenuBox("Options Mode",main_menu.x + main_menu.width + 1, main_menu.y, 150, 50)
+        options_menu.items.push(new MenuItem(options_menu, "Controls", function() {
+          menus.push(controls_menu)
+          active_menu = controls_menu
+          active_menu.controls(controls_menu)
+        }))
+        options_menu.back = function() { 
+          menus.pop()
+          console.log("menus.length = " + menus.length)
+          active_menu = main_menu
+          active_menu.controls(active_menu)
+        }
+
+        // controls menu
+        var controls_menu = new MenuBox("Controls Mode",options_menu.x + options_menu.width + 1, options_menu.y, 150, 150)
+        controls_menu.items.push(new MenuItem(controls_menu, "Keyboard", function() {
+          control_scheme = 1
+          menus.pop()
+          active_menu = options_menu
+          active_menu.controls(options_menu)
+        }))
+        controls_menu.items.push(new MenuItem(controls_menu, "Mouse", function() {
+          control_scheme = 2
+          menus.pop()
+          active_menu = options_menu
+          active_menu.controls(options_menu)
+        }))
+        controls_menu.index = control_scheme - 1
+        controls_menu.back = function() { 
+          menus.pop()
+          active_menu = options_menu
+          active_menu.controls(active_menu)
+        }
+
+        // controls
+        active_menu.controls(active_menu)
+      }
+
+      this.draw = function() {
+
+        jaws.context.fillStyle = "Black"
+        jaws.context.fillRect(0,0,jaws.width,jaws.height)
+
+        for (var i = 0; i < menus.length; i++) {
+          menus[i].draw()
+        }
+
+      }
+
+    }
+
     /*
     *
     * MenuState is our lobby/welcome menu were gamer can chose start, high score and settings.
@@ -2143,6 +2313,9 @@ $def with (name)
     *
     */
     function MenuState() {
+
+      jaws.start(MainMenu)
+
       var index = 0
       var items = [player_level, "-", player_stage]
 
