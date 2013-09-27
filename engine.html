@@ -22,6 +22,7 @@ $def with (name)
     var BOARD_WIDTH = 6
     var BOARD_HEIGHT = 10
     var ITEM_WIDTH = 40
+    var PURPLE_HEX = '#700054'
 
 
     var COLORS = new Array("RED","GREEN","PURPLE","BLUE","YELLOW","ORANGE","EMPTY","WHITE","UNSTABLE")
@@ -66,13 +67,15 @@ $def with (name)
       var level_editor
       var pause_menu
 
-
       /* Called once when a game state is activated. Use it for one-time setup code. */
       this.setup = function() {
         // live_info = document.getElementById("live_info")
         live_info = $("live_info")
 
         viewport = new jaws.Viewport({max_x: 600, max_y: 500})
+
+        console.dir("jaws.context = " + jaws.context.strokeRect)
+
 
         player = new Player(3,0)
 
@@ -82,6 +85,7 @@ $def with (name)
           player.board.fill(player_level,player_stage)
 
         // pause menu
+        pause = false
         pause_menu = new MenuBox("pause",player.board.board.x,player.board.board.y,4*ITEM_WIDTH,ITEM_WIDTH*3)
 
         // pause menu items
@@ -89,11 +93,10 @@ $def with (name)
           pause = false
         }))
         pause_menu.items.push(new MenuItem(pause_menu,"Restart",function(stuff) {
-          console.log(stuff)
-          stuff().Start(Game)
+          jaws.start(Game)
         }))
         pause_menu.items.push(new MenuItem(pause_menu,"Quit",function(jaws) {
-          jaws.Start(MenuState)
+          jaws.start(MenuState)
         }))
 
         console.log("menu items = " + pause_menu.items)
@@ -127,25 +130,32 @@ $def with (name)
 
         if (pause)
           pause_menu.controls(pause_menu)
+        else {
+
+          // jaws.on_keydown(["enter","esc"], function() {
+          //   jaws.start(MenuState)
+          // })    
+
+          jaws.on_keydown(["enter","esc","p"], function() {
+            pauseGame()
+          })    
+
+          jaws.on_keydown("l", function() {
+            if (level_edit) {
+              saveLevel(player_stage,player.board,function() {
+                jaws.start(MenuState)
+              })
+            }
+          })
+
+        }
 
         jaws.on_keydown("r", function() {
+          console.log("JAWS = " + jaws)
           jaws.start(Game)
         })  
-        jaws.on_keydown(["enter","esc"], function() {
-          jaws.start(MenuState)
-        })    
 
-        jaws.on_keydown(["p"], function() {
-          pauseGame()
-        })    
 
-        jaws.on_keydown("l", function() {
-          if (level_edit) {
-            saveLevel(player_stage,player.board,function() {
-              jaws.start(MenuState)
-            })
-          }
-        })
 
         player.update()
         if(level_edit)
@@ -159,6 +169,10 @@ $def with (name)
       /* Directly after each update draw() will be called. Put all your on-screen operations here. */
       this.draw = function() {
         jaws.clear()
+
+        // background
+        jaws.context.fillStyle = PURPLE_HEX
+        jaws.context.fillRect(0,0,600,500)
 
         // the viewport magic. wrap all draw()-calls inside viewport.apply and it will draw those relative to the viewport.
         viewport.apply( function() {
@@ -597,7 +611,7 @@ $def with (name)
             if (menu.index < menu.items.length - 1) menu.index++ 
           })
 
-          jaws.on_keydown(["space"], function() {
+          jaws.on_keydown(["enter","space"], function() {
             menu.items[menu.index].action(jaws)
           })
 
@@ -2513,6 +2527,7 @@ $def with (name)
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
       jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/BOARD.gif","./static/images/MENUBOX_SPRITES.gif"])
+
       if (name_entered)
         jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
       else
