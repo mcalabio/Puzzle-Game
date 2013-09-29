@@ -66,6 +66,15 @@ $def with (name)
       var game_end_timer = 30
       var level_editor
       var pause_menu
+      var restart_menu_item = new MenuItem(pause_menu,"Restart",function() {
+        jaws.start(Game)
+      })
+
+      var save_menu_item = new MenuItem(pause_menu,"Save Level",function() {
+        saveLevel(player_level,player_stage,player.board,function() {
+          jaws.start(MenuState)
+        })
+      })
 
       /* Called once when a game state is activated. Use it for one-time setup code. */
       this.setup = function() {
@@ -87,19 +96,6 @@ $def with (name)
         // pause menu
         pause = false
         pause_menu = new MenuBox("pause",player.board.board.x,player.board.board.y,4*ITEM_WIDTH,ITEM_WIDTH*3)
-
-        // pause menu items
-        pause_menu.items.push(new MenuItem(pause_menu,"Resume",function() {
-          pause = false
-        }))
-        pause_menu.items.push(new MenuItem(pause_menu,"Restart",function(stuff) {
-          jaws.start(Game)
-        }))
-        pause_menu.items.push(new MenuItem(pause_menu,"Quit",function(jaws) {
-          jaws.start(MainMenu)
-        }))
-
-        console.log("menu items = " + pause_menu.items)
 
         // level editor
         if (level_edit)
@@ -128,8 +124,10 @@ $def with (name)
         // Player Controls
         player.controls()
 
-        if (pause)
+        if (pause) {
+          // console.log(pause_menu)
           pause_menu.controls(pause_menu)
+        }
         else {
 
           // jaws.on_keydown(["enter","esc"], function() {
@@ -137,7 +135,8 @@ $def with (name)
           // })    
 
           jaws.on_keydown(["enter","esc","p"], function() {
-            pauseGame()
+            pauseGame(pause_menu,player,restart_menu_item,save_menu_item)
+
           })    
 
           jaws.on_keydown("l", function() {
@@ -2023,13 +2022,25 @@ $def with (name)
     
     }
 
-    function pauseGame () {
+    function pauseGame (pause_menu,player,restart_menu_item,save_menu_item) {
+
       if (pause)
         pause = false
       else
         pause = true
 
-      console.log("pause = " + pause)
+
+      // construct the pause menu
+      pause_menu.items = new Array()
+      pause_menu.items.push(new MenuItem(pause_menu,"Resume",function() {
+        pause = false
+      }))
+      pause_menu.items.push(((level_edit) ? save_menu_item : restart_menu_item))
+      pause_menu.items.push(new MenuItem(pause_menu,"Quit",function() {
+        jaws.start(MainMenu)
+      }))
+
+      console.log("constructed pause_menu = " + pause_menu.items.length)
     }
 
     function fisherYates ( myArray ) {
@@ -2235,10 +2246,13 @@ $def with (name)
         var active_menu
 
         // main menu
-        var main_menu = new MenuBox("Select Mode",ITEM_WIDTH,ITEM_WIDTH,200,100)
+        var main_menu = new MenuBox("Select Mode",ITEM_WIDTH,ITEM_WIDTH,200,125)
         main_menu.items.push(new MenuItem(main_menu,"Begin Game",function() {
           level_edit = false
           jaws.start(Game)
+        }))
+        main_menu.items.push(new MenuItem(main_menu,"Change Name",function() {
+          jaws.start(PlayerNameState)
         }))
         main_menu.items.push(new MenuItem(main_menu,"Level Editor",function() {
           level_edit = true
