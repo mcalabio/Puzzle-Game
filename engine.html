@@ -52,7 +52,7 @@ $def with (name)
     var player_name = "zonky"
     var player_level = 1
     var player_stage = 1
-    var control_scheme = 2
+    var control_scheme = 1
     var game_mode = 1
     var game_record = ""
     var level_edit = false
@@ -66,6 +66,8 @@ $def with (name)
       var game_end_timer = 30
       var level_editor
       var pause_menu
+      var winlose_menu
+      var winlose = false
       var restart_menu_item = new MenuItem(pause_menu,"Restart",function() {
         jaws.start(Game)
       })
@@ -88,6 +90,9 @@ $def with (name)
 
         player = new Player(3,0)
 
+        // Player Controls
+        player.controls()
+
         if (player_level == 0)
           player.board.fillLevel(player_level,player_stage)
         else
@@ -96,6 +101,16 @@ $def with (name)
         // pause menu
         pause = false
         pause_menu = new MenuBox("pause",player.board.board.x,player.board.board.y,4*ITEM_WIDTH,ITEM_WIDTH*3)
+
+        // winlose menu
+        winlose_menu = new MenuBox("Win!",player.board.board.x,player.board.board.y,4*ITEM_WIDTH,ITEM_WIDTH*3)
+
+        winlose_menu.items.push(new MenuItem(winlose_menu,"Continue",function() {
+          jaws.start(Game) 
+        }))
+        winlose_menu.items.push(new MenuItem(winlose_menu,"Quit",function() {
+          jaws.start(MainMenu) 
+        }))
 
         // level editor
         if (level_edit)
@@ -118,11 +133,8 @@ $def with (name)
         if (game_end == "W" || game_end == "L")
           game_end_timer--
 
-        if (game_end_timer <= 0)
+        if (game_end_timer <= 0 && !winlose)
           player.board.winLose()
-
-        // Player Controls
-        player.controls()
 
         if (pause) {
           // console.log(pause_menu)
@@ -132,12 +144,7 @@ $def with (name)
 
           // jaws.on_keydown(["enter","esc"], function() {
           //   jaws.start(MenuState)
-          // })    
-
-          jaws.on_keydown(["enter","esc","p"], function() {
-            pauseGame(pause_menu,player,restart_menu_item,save_menu_item)
-
-          })    
+          // })     
 
           jaws.on_keydown("l", function() {
             if (level_edit) {
@@ -208,8 +215,15 @@ $def with (name)
         this.controls = function() {
 
           if (control_scheme == 1) {
+            jaws.on_keydown(["enter","esc","p"], function() {
+
+              if (game_end == "")
+                pauseGame(pause_menu,player,restart_menu_item,save_menu_item)
+
+            })   
+            
             jaws.on_keydown(["left","a"], function() {
-              if (pause) return
+              if (pause || game_end != "") return
               X_SPEED = SLOW
               if(player.x > 0) {
                 if (player.canMoveX(-1)) player.moveX(-1)
@@ -225,7 +239,7 @@ $def with (name)
               console.log("player (" + player.x + " , " + player.y + ")")
             })
             jaws.on_keydown(["right","d"], function() {
-              if (pause) return
+              if (pause || game_end != "") return
               X_SPEED = SLOW
               if(player.x < BOARD_WIDTH - 1) {
                 if (player.canMoveX(1)) player.moveX(1)
@@ -242,13 +256,13 @@ $def with (name)
               console.log("player (" + player.x + " , " + player.y + ")")
             })
             jaws.on_keydown(["up","w"], function() {
-              if (pause) return
+              if (pause || game_end != "") return
               if(player.y < BOARD_HEIGHT-1)player.y += 1
               console.log("player (" + player.x + " , " + player.y + ")")
             })
             jaws.on_keydown(["down","s"], function() {
 
-              if (pause) return
+              if (pause || game_end != "") return
 
               if(player.hand.items.length>0) {
                 player.drop(player.board.stacks[player.x],player.hand.items.length)              
@@ -258,7 +272,7 @@ $def with (name)
               console.log("player (" + player.x + " , " + player.y + ")")
             })
             jaws.on_keydown(["z","k"], function() {
-              if (pause) return
+              if (pause || game_end != "") return
               if(player.hand.items.length == 0) {          
                 player.grab(player.board.stacks[player.x],player.board.stacks[player.x].items.length)
               } else {
@@ -266,7 +280,7 @@ $def with (name)
               }
             })
             jaws.on_keydown(["x","j","space"], function() {
-              if (pause) return
+              if (pause || game_end != "") return
               if(player.hand.items.length == 0) {
                 //grab depth determined by cursor y-position
                 var depth = player.board.stacks[player.x].items.length - player.y
@@ -280,7 +294,7 @@ $def with (name)
           if (control_scheme == 2 || level_edit) {
 
             jaws.on_keydown(["left_mouse_button"], function() {
-              if (pause) return
+              if (pause || game_end != "") return
               var click_coordinates = new Array()
               click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
               console.log("click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
@@ -288,7 +302,7 @@ $def with (name)
             })
 
             jaws.on_keydown(["right_mouse_button"], function() {
-              if (pause) return
+              if (pause || game_end != "") return
               var click_coordinates = new Array()
               click_coordinates = player.board.boardCoordinates(jaws.mouse_x,jaws.mouse_y)
               console.log("right click coordinates on board: (" + click_coordinates[0] + "," + click_coordinates[1] + ")")
@@ -545,7 +559,7 @@ $def with (name)
 
           this.board.draw()
 
-          if (pause)
+          if (pause || game_end != "")
             return
 
           this.hand.draw()
@@ -555,90 +569,6 @@ $def with (name)
             return
           this.cursor_top.draw()
           this.cursor_bottom.draw()
-        }
-
-      }
-
-      function MenuItem(menu,text,action) {
-
-        this.menu = menu
-        this.text = text
-        this.action = action
-
-      }
-
-      function MenuBox(title,x,y,width,height) {
-
-        console.log("constructing menubox at (" + x + "," + y + ")")
-
-
-        var SPRITE_WIDTH = 10
-
-        this.title = title
-
-        this.x = x
-        this.y = y
-        this.items = new Array() // menu items
-        this.index = 0 // item currently chosen
-
-        this.sprite_sheet = new jaws.SpriteSheet({
-          image: "./static/images/MENUBOX_SPRITES.gif", frame_size: [SPRITE_WIDTH,SPRITE_WIDTH]})
-
-        var edge_width  = width - SPRITE_WIDTH*2
-        var edge_height = height - SPRITE_WIDTH*2
-
-        this.sprite_nw = new jaws.Sprite({x:x, y:y, image: this.sprite_sheet.frames[0]})
-        this.sprite_n = new jaws.Sprite({x:x + SPRITE_WIDTH, y:y, image: this.sprite_sheet.frames[1]})
-        this.sprite_ne = new jaws.Sprite({x:x + SPRITE_WIDTH + edge_width, y:y, image: this.sprite_sheet.frames[2]})
-        this.sprite_w = new jaws.Sprite({x:x, y:y + SPRITE_WIDTH, image: this.sprite_sheet.frames[3]})
-        this.sprite_e = new jaws.Sprite({x:x + SPRITE_WIDTH + edge_width, y:y + SPRITE_WIDTH, image: this.sprite_sheet.frames[4]})
-        this.sprite_sw = new jaws.Sprite({x:x, y:y + SPRITE_WIDTH + edge_height, image: this.sprite_sheet.frames[5]})
-        this.sprite_s = new jaws.Sprite({x:x + SPRITE_WIDTH, y:y + SPRITE_WIDTH + edge_height, image: this.sprite_sheet.frames[6]})
-        this.sprite_se = new jaws.Sprite({x:x + SPRITE_WIDTH + edge_width, y:y + SPRITE_WIDTH + edge_height, image: this.sprite_sheet.frames[7]})
-
-        // fix widths and heights for edges
-        this.sprite_n.width = this.sprite_s.width = edge_width
-        this.sprite_w.height = this.sprite_e.height = edge_height
-
-        this.controls = function(menu) {
-
-          jaws.on_keydown(["up","w"], function() {            
-            if (menu.index > 0) menu.index-- 
-          })
-
-          jaws.on_keydown(["down","s"], function() {
-            if (menu.index < menu.items.length - 1) menu.index++ 
-          })
-
-          jaws.on_keydown(["enter","space"], function() {
-            menu.items[menu.index].action(jaws)
-          })
-
-        }
-
-        this.draw = function() {
-
-          // draw edges
-          this.sprite_nw.draw()
-          this.sprite_n.draw()
-          this.sprite_ne.draw()
-          this.sprite_w.draw()
-          this.sprite_e.draw()
-          this.sprite_sw.draw()
-          this.sprite_s.draw()
-          this.sprite_se.draw()
-
-          // draw menu items
-          for (var i=0; i < this.items.length; i++) {
-
-            jaws.context.font = "bold 12pt Monaco";
-            jaws.context.lineWidth = 10
-            jaws.context.fillStyle =  (this.index == i) ? "Red" : "White"
-            jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-            jaws.context.fillText(this.items[i].text, this.x + 25, this.y + 25 * (i + 1))
-
-          }
-
         }
 
       }
@@ -811,7 +741,7 @@ $def with (name)
 
               } else {
 
-                // TODO: check for matches (make a new one for all types of items)
+                // remove clicked item
                 this_stack.removeItem(this_item)
 
               }
@@ -1179,22 +1109,15 @@ $def with (name)
             }
           }
 
-          // // check for necessary amount of white blocks
-          // var potential_white_potions = this.block_count[WHITE] / 3
-          // // window.alert ("checking for lose condition with potential_white_potions = " + potential_white_potions)
-          // if (potential_white_potions < this.flask_count[EMPTY]) {
-          //       console.log("lose! Not enough white blocks to clear robots.")
-          //       var record = buildRecordString(this,"L")
-          //       saveRecord(record)
-          //       game_end = "L"
-          //       return
-          // }
-
-
         }
 
         this.winLose = function() {
-          window.alert(game_record)
+          // todo: win/lose menu
+          // window.alert(game_record)
+          winlose = true
+
+          winlose_menu.controls(winlose_menu)
+
           if (game_end == "W") {
             if (player_level == 1) {
               if (player_stage == 3)
@@ -1212,9 +1135,9 @@ $def with (name)
             } else {
               player_level++
             }
-            jaws.start(MenuState)  
+            // jaws.start(MenuState)  
           } else if (game_end == "L") {
-            jaws.start(Game)
+            // jaws.start(Game)
           }
         }
 
@@ -1282,6 +1205,8 @@ $def with (name)
           if (pause) {
             pause_menu.draw()
             return
+          } else if (game_end != "") {
+            winlose_menu.draw()
           }
 
           // draw all stacks in this board and containing items
@@ -2192,7 +2117,9 @@ $def with (name)
 
       this.controls = function(menu) {
 
-        jaws.on_keydown(["up","w"], function() {            
+        console.log("menu controls")
+
+        jaws.on_keydown(["up","w"], function() {    
           if (menu.index > 0) menu.index-- 
         })
 
@@ -2201,6 +2128,7 @@ $def with (name)
         })
 
         jaws.on_keydown(["enter","space"], function() {
+          console.log("performing action")
           menu.items[menu.index].action(jaws)
         })
 
