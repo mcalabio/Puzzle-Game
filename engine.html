@@ -63,7 +63,6 @@ $def with (name)
       var viewport
       var need_to_restart = false
       var game_end = ""
-      var game_end_timer = 30
       var level_editor
       var pause_menu
       var winlose_menu
@@ -74,7 +73,7 @@ $def with (name)
 
       var save_menu_item = new MenuItem(pause_menu,"Save Level",function() {
         saveLevel(player_level,player_stage,player.board,function() {
-          jaws.start(MenuState)
+          jaws.start(MainMenu)
         })
       })
 
@@ -107,9 +106,9 @@ $def with (name)
         pause_menu = new MenuBox("Pause!",menu_x, menu_y,4*ITEM_WIDTH,ITEM_WIDTH*3)
 
         // winlose menu
-        winlose_menu = new MenuBox("You Win!",menu_x, menu_y,4*ITEM_WIDTH,ITEM_WIDTH*3)
+        winlose_menu = new MenuBox("",menu_x, menu_y,4*ITEM_WIDTH,ITEM_WIDTH*3)
 
-        winlose_menu.items.push(new MenuItem(winlose_menu,"Continue",function() {
+        winlose_menu.items.push(new MenuItem(winlose_menu,"",function() {
           jaws.start(Game) 
         }))
         winlose_menu.items.push(new MenuItem(winlose_menu,"Quit",function() {
@@ -134,26 +133,21 @@ $def with (name)
         if (need_to_restart)
           jaws.start(Game)
 
-        if (game_end == "W" || game_end == "L")
-          game_end_timer--
-
-        if (game_end_timer <= 0 && !winlose)
+        if ((game_end == "W" || game_end == "L") && !winlose) {
           player.board.winLose()
+        }
 
         if (pause) {
           // console.log(pause_menu)
           pause_menu.controls(pause_menu)
         }
-        else {
-
-          // jaws.on_keydown(["enter","esc"], function() {
-          //   jaws.start(MenuState)
-          // })     
+        else {    
 
           jaws.on_keydown("l", function() {
             if (level_edit) {
-              saveLevel(player_level,player_stage,player.board,function() {
-                jaws.start(MenuState)
+              console.log("load level at some point")
+              // saveLevel(player_level,player_stage,player.board,function() {
+              //   jaws.start(MenuState)
               })
             }
           })
@@ -1116,8 +1110,7 @@ $def with (name)
         }
 
         this.winLose = function() {
-          // todo: win/lose menu
-          // window.alert(game_record)
+
           winlose = true
 
           winlose_menu.controls(winlose_menu)
@@ -1139,7 +1132,8 @@ $def with (name)
             } else {
               player_level++
             }
-            // jaws.start(MenuState)  
+            winlose_menu.title = "YOU WIN!"
+            winlose_menu.items[0].text = "Continue"
           } else if (game_end == "L") {
             winlose_menu.title = "YOU LOSE!"
             winlose_menu.items[0].text = "Retry"
