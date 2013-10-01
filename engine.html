@@ -51,7 +51,8 @@ $def with (name)
     var name_entered = false
     var player_name = "zonky"
     var player_level = 1
-    var player_stage = 10
+    var player_stage = 1
+    var player_progress = [1]
     var control_scheme = 1
     var game_mode = 1
     var game_record = ""
@@ -1114,9 +1115,19 @@ $def with (name)
             
             if (player_stage < 10) {
               player_stage++
+
+              // update player progress
+              if(player_progress[player_level - 1] < player_stage)
+                player_progress[player_level - 1] = player_stage
+
             } else {
               player_level++
               player_stage = 1
+
+              // update player progress
+              if(player_progress.length < player_level)
+                player_progress.push(player_stage)
+
             }
 
             winlose_menu.title = "YOU WIN!"
@@ -2207,7 +2218,9 @@ $def with (name)
 
         // level select menu
         var level_select_menu = new MenuBox("Level",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, 75)
-        var level_select_string = player_level + "-" + player_stage
+        var level_select_string = player_progress.length + "-" + player_progress[player_progress.length-1]
+        player_level = player_progress.length
+        player_stage = player_progress[player_progress.length - 1]
         level_select_menu.items.push(new MenuItem(level_select_menu,level_select_string,function() {
           level_edit = false
           jaws.start(Game)
@@ -2217,12 +2230,18 @@ $def with (name)
 
           console.log("level select menu controls")
 
-          jaws.on_keydown(["up","w"], function() {    
-            if (player_stage < 10)
-              player_stage++
-            else {
-              player_level++
-              player_stage = 1
+          jaws.on_keydown(["up","w"], function() { 
+            console.log("player_stage = " + player_stage)   
+            if (player_stage < 10) {
+              if (player_stage < player_progress[player_level-1])
+                player_stage++
+            } else {
+              console.log("ELSED!")
+              if (player_level < player_progress.length) {
+                console.log("LEVELED!")
+                player_level++
+                player_stage = 1
+              }
             }
             level_select_string = player_level + "-" + player_stage
             menu.items[0].text = level_select_string
@@ -2231,7 +2250,7 @@ $def with (name)
           jaws.on_keydown(["down","s"], function() {
             if (player_stage > 1)
               player_stage--
-            else {
+            else if (player_level > 1){
               player_level--
               player_stage = 10
             }
