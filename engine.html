@@ -51,7 +51,7 @@ $def with (name)
     var name_entered = false
     var player_name = "zonky"
     var player_level = 1
-    var player_stage = 1
+    var player_stage = 10
     var control_scheme = 1
     var game_mode = 1
     var game_record = ""
@@ -92,10 +92,8 @@ $def with (name)
         // Player Controls
         player.controls()
 
-        if (player_level == 0)
-          player.board.fillLevel(player_level,player_stage)
-        else
-          player.board.fill(player_level,player_stage)
+        // fill up the level with items
+        player.board.fillLevel(player_level,player_stage)
 
         // pause menu
         pause = false
@@ -103,10 +101,10 @@ $def with (name)
         var menu_x = player.board.board.x + player.board.board.width/2 - 2*ITEM_WIDTH
         var menu_y = player.board.board.y + player.board.board.height/2 - 3*ITEM_WIDTH
 
-        pause_menu = new MenuBox("Pause!",menu_x, menu_y,4*ITEM_WIDTH,ITEM_WIDTH*3)
+        pause_menu = new MenuBox("Pause!",pause_menu,menu_x, menu_y,4*ITEM_WIDTH,ITEM_WIDTH*3)
 
         // winlose menu
-        winlose_menu = new MenuBox("",menu_x, menu_y,4*ITEM_WIDTH,ITEM_WIDTH*3)
+        winlose_menu = new MenuBox("",winlose_menu,menu_x, menu_y,4*ITEM_WIDTH,ITEM_WIDTH*3)
 
         winlose_menu.items.push(new MenuItem(winlose_menu,"",function() {
           jaws.start(Game) 
@@ -148,7 +146,7 @@ $def with (name)
               console.log("load level at some point")
               // saveLevel(player_level,player_stage,player.board,function() {
               //   jaws.start(MenuState)
-              })
+              // })
             }
           })
 
@@ -807,36 +805,33 @@ $def with (name)
         this.fillLevel = function(level,stage) {
 
           loadLevel(level,stage, this, function(data, this_board) {
-            var stacks_string = data.split('\n')
 
-            // console.log("string_string = " + string_string)
-            
-            // var level_string = "2|0,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
-            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
-            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
-            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
-            // "1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6,1|6\n" + 
-            // "1|6,1|6,1|6,1|6,1|6,1|0\n" //loadLevel(stage)
-            // var stacks_string = level_string.split('\n')
+            // SANITY CHECK
+            if (data == "\n\n\n\n\n\n") {
+              player_level = 1
+              player_stage = 1
+              jaws.start(MainMenu)
+            }
+
+            // array of stacks in string form
+            var stacks_string = data.split('\n')
             var items
 
             // go through each stack
             for (var s=0; s < BOARD_WIDTH; s++) {
 
-              console.log("s = " + s)
-              console.log("stack string = " + stacks_string[s])
-
               this_board.stacks.push(new Stack(this_board,level,s))
 
               var this_stack = this_board.stacks[s]
 
-              // go through each item
+              // array of items in string form
               items = stacks_string[s].split(',')
-              console.log("items = " + items)
 
+              // skip empty stacks
               if (items == "")
                 continue
 
+              // go through each item in this stack
               for (var i=0; i < items.length; i++) {
 
                 var item = items[i]
@@ -845,7 +840,7 @@ $def with (name)
                 var type = item_string[0]
                 var color = item_string[1]
 
-                console.log("looking though item of type = " + type + ", color = " + color)
+                console.log("stack(" + s + ") looking though item of type = " + type + ", color = " + color)
 
                 this_stack.items.push(new Item(this_stack,type,color,s,i))
 
@@ -1116,22 +1111,14 @@ $def with (name)
           winlose_menu.controls(winlose_menu)
 
           if (game_end == "W") {
-            if (player_level == 1) {
-              if (player_stage == 3)
-                player_stage = 6
-              else if (player_stage == 6) {
-                player_level++
-                player_stage = 1
-              } else {
-                player_stage++
-              }
-            } else if (player_level == 6){
-              if (player_stage == 1) {
-                player_stage = 6
-              }
+            
+            if (player_stage < 10) {
+              player_stage++
             } else {
               player_level++
+              player_stage = 1
             }
+
             winlose_menu.title = "YOU WIN!"
             winlose_menu.items[0].text = "Continue"
           } else if (game_end == "L") {
@@ -2084,7 +2071,7 @@ $def with (name)
 
     }
 
-    function MenuBox(title,x,y,width,height) {
+    function MenuBox(title,parent,x,y,width,height) {
 
       console.log("constructing menubox at (" + x + "," + y + ")")
 
@@ -2092,6 +2079,7 @@ $def with (name)
       var SPRITE_WIDTH = 10
 
       this.title = title
+      this.parent = parent // parent menu
 
       this.x = x
       this.y = y
@@ -2121,8 +2109,6 @@ $def with (name)
       this.sprite_w.height = this.sprite_e.height = edge_height
 
       this.controls = function(menu) {
-
-        console.log("menu controls")
 
         jaws.on_keydown(["up","w"], function() {    
           if (menu.index > 0) menu.index-- 
@@ -2185,15 +2171,23 @@ $def with (name)
 
       var menus = new Array()
 
+      this.back = function() { 
+          var this_menu = menus.pop()
+          console.log("menus.length = " + menus.length)
+          active_menu = this_menu.parent
+          active_menu.controls(active_menu)
+      }
+
       this.setup = function() {
 
         var active_menu
 
         // main menu
-        var main_menu = new MenuBox("",ITEM_WIDTH,ITEM_WIDTH,200,125)
+        var main_menu = new MenuBox("",main_menu,ITEM_WIDTH,ITEM_WIDTH,200,125)
         main_menu.items.push(new MenuItem(main_menu,"Begin Game",function() {
-          level_edit = false
-          jaws.start(Game)
+          menus.push(level_select_menu)
+          active_menu = level_select_menu
+          active_menu.controls(active_menu)
         }))
         main_menu.items.push(new MenuItem(main_menu,"Change Name",function() {
           jaws.start(PlayerNameState)
@@ -2211,22 +2205,62 @@ $def with (name)
         menus.push(main_menu)
         active_menu = main_menu
 
+        // level select menu
+        var level_select_menu = new MenuBox("Level",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, 75)
+        var level_select_string = player_level + "-" + player_stage
+        level_select_menu.items.push(new MenuItem(level_select_menu,level_select_string,function() {
+          level_edit = false
+          jaws.start(Game)
+        }))
+        level_select_menu.back = this.back
+        level_select_menu.controls = function(menu) {
+
+          console.log("level select menu controls")
+
+          jaws.on_keydown(["up","w"], function() {    
+            if (player_stage < 10)
+              player_stage++
+            else {
+              player_level++
+              player_stage = 1
+            }
+            level_select_string = player_level + "-" + player_stage
+            menu.items[0].text = level_select_string
+          })
+
+          jaws.on_keydown(["down","s"], function() {
+            if (player_stage > 1)
+              player_stage--
+            else {
+              player_level--
+              player_stage = 10
+            }
+            level_select_string = player_level + "-" + player_stage
+            menu.items[0].text = level_select_string
+          })
+
+          jaws.on_keydown(["enter","space"], function() {
+            console.log("performing action")
+            menu.items[menu.index].action(jaws)
+          })
+
+          jaws.on_keydown(["esc","a","left"], function() {
+            menu.back()
+          })
+
+      }
+
         // options menu
-        var options_menu = new MenuBox("",main_menu.x + main_menu.width + 1, main_menu.y, 150, 50)
+        var options_menu = new MenuBox("",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, 50)
         options_menu.items.push(new MenuItem(options_menu, "Controls", function() {
           menus.push(controls_menu)
           active_menu = controls_menu
           active_menu.controls(controls_menu)
         }))
-        options_menu.back = function() { 
-          menus.pop()
-          console.log("menus.length = " + menus.length)
-          active_menu = main_menu
-          active_menu.controls(active_menu)
-        }
+        options_menu.back = this.back
 
         // controls menu
-        var controls_menu = new MenuBox("",options_menu.x + options_menu.width + 1, options_menu.y, 150, 150)
+        var controls_menu = new MenuBox("",options_menu,options_menu.x + options_menu.width + 1, options_menu.y, 150, 150)
         controls_menu.items.push(new MenuItem(controls_menu, "Keyboard", function() {
           control_scheme = 1
           menus.pop()
@@ -2389,7 +2423,7 @@ $def with (name)
       var name_text = "       " + player_name
       if (player_name.length < 10) name_text = name_text + "_"
 
-      var enter_name = new MenuBox("",ITEM_WIDTH,ITEM_WIDTH,300,75)
+      var enter_name = new MenuBox("",enter_name,ITEM_WIDTH,ITEM_WIDTH,300,75)
         enter_name.items.push(new MenuItem(enter_name,"Please enter your name: ",function(){return
         }))
         enter_name.items.push(new MenuItem(enter_name,name_text,function(){
