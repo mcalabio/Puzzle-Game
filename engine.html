@@ -808,7 +808,8 @@ $def with (name)
           loadLevel(level,stage, this, function(data, this_board) {
 
             // SANITY CHECK
-            if (data == "\n\n\n\n\n\n") {
+            if (data == "\n\n\n\n\n\n" && !level_edit) {
+
               player_level = 1
               player_stage = 1
               jaws.start(MainMenu)
@@ -2074,6 +2075,22 @@ $def with (name)
 
     }
 
+    function findEditLevels (callback) {
+
+      var json_data = JSON.stringify({'type': "findEditLevels"})
+
+      console.log("finding last edited level")
+      jQuery.ajax({
+        type: "POST",
+        data: json_data,
+        success: function(data) {
+          console.log("last level found = 0-" + data)
+          callback(data)
+        }
+      })
+
+    }
+
     function MenuItem(menu,text,action) {
 
       this.menu = menu
@@ -2181,6 +2198,11 @@ $def with (name)
     function MainMenu() {
 
       var menus = new Array()
+      var latest_edit
+      findEditLevels(function(latest) {
+        latest_edit = latest
+      })
+      var level_select_string = player_progress.length + "-" + player_progress[player_progress.length-1]
 
       this.back = function() { 
           var this_menu = menus.pop()
@@ -2199,13 +2221,24 @@ $def with (name)
           menus.push(level_select_menu)
           active_menu = level_select_menu
           active_menu.controls(active_menu)
+          level_edit = false
+          level_select_string = player_progress.length + "-" + player_progress[player_progress.length-1]
+          player_level = player_progress.length
+          player_stage = player_progress[player_progress.length - 1]
+          level_select_menu.items[0].text = level_select_string
         }))
         main_menu.items.push(new MenuItem(main_menu,"Change Name",function() {
           jaws.start(PlayerNameState)
         }))
         main_menu.items.push(new MenuItem(main_menu,"Level Editor",function() {
+          menus.push(level_select_menu)
+          active_menu = level_select_menu
+          active_menu.controls(active_menu)
           level_edit = true
-          jaws.start(Game)
+          player_level = 0
+          player_stage = 1
+          level_select_string = "0-" + player_stage
+          level_select_menu.items[0].text = level_select_string
         }))
         main_menu.items.push(new MenuItem(main_menu,"Options Mode",function() {
           menus.push(options_menu)
@@ -2218,44 +2251,53 @@ $def with (name)
 
         // level select menu
         var level_select_menu = new MenuBox("Level",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, 75)
-        var level_select_string = player_progress.length + "-" + player_progress[player_progress.length-1]
-        player_level = player_progress.length
-        player_stage = player_progress[player_progress.length - 1]
         level_select_menu.items.push(new MenuItem(level_select_menu,level_select_string,function() {
-          level_edit = false
           jaws.start(Game)
         }))
         level_select_menu.back = this.back
         level_select_menu.controls = function(menu) {
 
-          console.log("level select menu controls")
-
           jaws.on_keydown(["up","w"], function() { 
-            console.log("player_stage = " + player_stage)   
-            if (player_stage < 10) {
-              if (player_stage < player_progress[player_level-1])
+
+            if (level_edit) {
+
+              console.log(player_stage)
+              console.log(latest_edit)
+              if (player_stage < latest_edit)
                 player_stage++
+
             } else {
-              console.log("ELSED!")
-              if (player_level < player_progress.length) {
-                console.log("LEVELED!")
-                player_level++
-                player_stage = 1
+
+              if (player_stage < 10) {
+                if (player_stage < player_progress[player_level-1])
+                  player_stage++
+              } else {
+                if (player_level < player_progress.length) {
+                  player_level++
+                  player_stage = 1
+                }
               }
+
             }
+
             level_select_string = player_level + "-" + player_stage
             menu.items[0].text = level_select_string
+
           })
 
           jaws.on_keydown(["down","s"], function() {
+
             if (player_stage > 1)
               player_stage--
             else if (player_level > 1){
+              if(level_edit) return
               player_level--
               player_stage = 10
             }
+
             level_select_string = player_level + "-" + player_stage
             menu.items[0].text = level_select_string
+
           })
 
           jaws.on_keydown(["enter","space"], function() {
