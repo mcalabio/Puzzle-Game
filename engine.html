@@ -2149,6 +2149,45 @@ $def with (name)
       this.sprite_n.width = this.sprite_s.width = edge_width
       this.sprite_w.height = this.sprite_e.height = edge_height
 
+      // provide coordinates of clicks with respect to menu item index
+      this.menuCoordinates = function(x,y,right_click) {
+
+        // find click coordinates with respect to board's top-left position in canvas
+        var menu_x = x - this.x
+        var menu_y = y - this.y
+
+        var outside_x = false
+        var outside_y = false
+
+        if (menu_x < 0 || menu_x > this.width)
+          outside_x = true
+        if (menu_y < 0 || menu_y > this.height)
+          outside_y = true
+
+        if (outside_x || outside_y) {
+          console.log("outside index = " + this.index)
+          return this.index
+        }
+
+        // console.log("(" + menu_x + "," + menu_y + ")")
+
+        // figure out which stack player clicked above or on
+        // bitwise OR operator to truncate float point figures
+        // board_x = (board_x / ITEM_WIDTH) | 0
+
+        // figure out depth the player clicked into the stack
+        // board_y = BOARD_HEIGHT + (BOARD_HEIGHT - board_y) / ITEM_WIDTH | 0
+
+        var index = (menu_y - 30)/20
+
+        if (index < 0)
+          index = 0
+        else if (index > this.items.length - 1)
+          index = this.items.length - 1
+
+        return Math.round(index)
+      }
+
       this.controls = function(menu) {
 
         jaws.on_keydown(["up","w"], function() {    
@@ -2168,9 +2207,16 @@ $def with (name)
           menu.back()
         })
 
+        // TODO: mouse click
+        jaws.on_keydown(["left_mouse_button"], function() {
+          menu.items[menu.index].action()
+        })
+
       }
 
       this.draw = function() {
+
+        this.index = this.menuCoordinates(jaws.mouse_x,jaws.mouse_y)
 
         // draw edges
         this.sprite_nw.draw()
