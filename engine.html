@@ -2125,6 +2125,7 @@ $def with (name)
       this.items = items // menu items
       this.index = 0 // item currently chosen
       this.back
+      this.active = false
 
       // calculate height
       this.height = 20 * (items.length + ((this.title == "") ? 0 : 1)) + 30
@@ -2165,7 +2166,6 @@ $def with (name)
           outside_y = true
 
         if (outside_x || outside_y) {
-          console.log("outside index = " + this.index)
           return this.index
         }
 
@@ -2207,16 +2207,25 @@ $def with (name)
           menu.back()
         })
 
-        // TODO: mouse click
         jaws.on_keydown(["left_mouse_button"], function() {
           menu.items[menu.index].action()
         })
 
       }
 
+      // sets the game to acknowledge a new active menu
+      this.setActiveMenu = function(new_active,active_menu) {
+          this.active = false
+          active_menu = new_active
+          active_menu.active = true
+          active_menu.controls(active_menu)
+      }
+
       this.draw = function() {
 
-        this.index = this.menuCoordinates(jaws.mouse_x,jaws.mouse_y)
+        // update index according to mouse position if menu is active
+        if (this.active)
+          this.index = this.menuCoordinates(jaws.mouse_x,jaws.mouse_y)
 
         // draw edges
         this.sprite_nw.draw()
@@ -2256,6 +2265,7 @@ $def with (name)
 
     function MainMenu() {
 
+      var active_menu
       var menus = new Array()
       var latest_edit
       findEditLevels(function(latest) {
@@ -2265,21 +2275,16 @@ $def with (name)
 
       this.back = function() { 
           var this_menu = menus.pop()
-          console.log("menus.length = " + menus.length)
-          active_menu = this_menu.parent
-          active_menu.controls(active_menu)
+          this_menu.setActiveMenu(this_menu.parent,active_menu)
       }
 
       this.setup = function() {
-
-        var active_menu
 
         // main menu
         var main_menu_items = new Array()
           main_menu_items.push(new MenuItem(main_menu,"Begin Game",function() {
             menus.push(level_select_menu)
-            active_menu = level_select_menu
-            active_menu.controls(active_menu)
+            level_select_menu.parent.setActiveMenu(level_select_menu,active_menu)
             level_edit = false
             level_select_string = player_progress.length + "-" + player_progress[player_progress.length-1]
             player_level = player_progress.length
@@ -2291,8 +2296,7 @@ $def with (name)
           }))
           main_menu_items.push(new MenuItem(main_menu,"Level Editor",function() {
             menus.push(level_select_menu)
-            active_menu = level_select_menu
-            active_menu.controls(active_menu)
+            level_select_menu.parent.setActiveMenu(level_select_menu,active_menu)
             level_edit = true
             player_level = 0
             player_stage = 1
@@ -2301,13 +2305,13 @@ $def with (name)
           }))
           main_menu_items.push(new MenuItem(main_menu,"Options Mode",function() {
             menus.push(options_menu)
-            active_menu = options_menu
-            active_menu.controls(active_menu)
+            options_menu.parent.setActiveMenu(options_menu,active_menu)
           }))
         var main_menu = new MenuBox("",main_menu,ITEM_WIDTH,ITEM_WIDTH,200,main_menu_items)
 
         menus.push(main_menu)
         active_menu = main_menu
+        active_menu.active = true
 
         // level select menu
         var level_select_menu = new MenuBox("Level",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, [new MenuItem(level_select_menu,level_select_string,function() {
@@ -2368,13 +2372,16 @@ $def with (name)
             menu.back()
           })
 
+          jaws.on_keydown(["left_mouse_button"], function() {
+            menu.items[menu.index].action()
+          })
+
       }
 
         // options menu
         var options_menu = new MenuBox("",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, [new MenuItem(options_menu, "Controls", function() {
           menus.push(controls_menu)
-          active_menu = controls_menu
-          active_menu.controls(controls_menu)
+          controls_menu.parent.setActiveMenu(controls_menu,active_menu)
           })])
         options_menu.back = this.back
 
