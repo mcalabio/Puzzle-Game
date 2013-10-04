@@ -1119,7 +1119,7 @@ $def with (name)
         this.winLose = function() {
 
           winlose = true
-
+          winlose_menu.active = true
           winlose_menu.controls(winlose_menu)
 
           if (game_end == "W") {
@@ -1962,10 +1962,13 @@ $def with (name)
 
     function pauseGame (pause_menu,player,restart_menu_item,save_menu_item) {
 
-      if (pause)
+      if (pause) {
         pause = false
-      else
+        pause_menu.active = false
+      } else {
         pause = true
+        pause_menu.active = true
+      }
 
 
       // construct the pause menu
@@ -2178,7 +2181,7 @@ $def with (name)
         // figure out depth the player clicked into the stack
         // board_y = BOARD_HEIGHT + (BOARD_HEIGHT - board_y) / ITEM_WIDTH | 0
 
-        var index = (menu_y - 30)/20
+        var index = (menu_y - 30)/20 - ((this.title == "") ? 0 : 1)
 
         if (index < 0)
           index = 0
