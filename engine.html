@@ -2129,6 +2129,7 @@ $def with (name)
       this.index = 0 // item currently chosen
       this.back
       this.active = false
+      this.mouse_inside = false
 
       // calculate height
       this.height = 20 * (items.length + ((this.title == "") ? 0 : 1)) + 30
@@ -2169,17 +2170,9 @@ $def with (name)
           outside_y = true
 
         if (outside_x || outside_y) {
+          this.mouse_inside = false
           return this.index
         }
-
-        // console.log("(" + menu_x + "," + menu_y + ")")
-
-        // figure out which stack player clicked above or on
-        // bitwise OR operator to truncate float point figures
-        // board_x = (board_x / ITEM_WIDTH) | 0
-
-        // figure out depth the player clicked into the stack
-        // board_y = BOARD_HEIGHT + (BOARD_HEIGHT - board_y) / ITEM_WIDTH | 0
 
         var index = (menu_y - 30)/20 - ((this.title == "") ? 0 : 1)
 
@@ -2188,6 +2181,7 @@ $def with (name)
         else if (index > this.items.length - 1)
           index = this.items.length - 1
 
+        this.mouse_inside = true
         return Math.round(index)
       }
 
@@ -2211,13 +2205,17 @@ $def with (name)
         })
 
         jaws.on_keydown(["left_mouse_button"], function() {
-          menu.items[menu.index].action()
+          if(menu.mouse_inside)
+            menu.items[menu.index].action()
+          else
+            menu.back()
         })
 
       }
 
       // sets the game to acknowledge a new active menu
       this.setActiveMenu = function(new_active,active_menu) {
+          console.log("set active menu!")
           this.active = false
           active_menu = new_active
           active_menu.active = true
@@ -2376,7 +2374,10 @@ $def with (name)
           })
 
           jaws.on_keydown(["left_mouse_button"], function() {
-            menu.items[menu.index].action()
+            if (menu.mouse_inside)
+              menu.items[menu.index].action()
+            else
+              menu.back()
           })
 
       }
@@ -2406,8 +2407,7 @@ $def with (name)
         controls_menu.index = control_scheme - 1
         controls_menu.back = function() { 
           menus.pop()
-          active_menu = options_menu
-          active_menu.controls(active_menu)
+          controls_menu.setActiveMenu(controls_menu.parent,active_menu)
         }
 
         // controls
