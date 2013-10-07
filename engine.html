@@ -2383,6 +2383,7 @@ $def with (name)
         // options menu
         var options_menu = new MenuBox("",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, [new MenuItem(options_menu, "Controls", function() {
           menus.push(controls_menu)
+          controls_menu.index = control_scheme - 1
           controls_menu.parent.setActiveMenu(controls_menu,active_menu)
           })])
         options_menu.back = this.back
