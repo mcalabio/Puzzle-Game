@@ -2264,6 +2264,11 @@ $def with (name)
 
           var this_sprite = this.sprites[s]
 
+          if (!this_sprite.active) {
+            this_sprite.mouse_over = false
+            continue
+          }
+
           if (jaws.mouse_x > this_sprite.x && jaws.mouse_x < this_sprite.x + this_sprite.width &&
               jaws.mouse_y > this_sprite.y && jaws.mouse_y < this_sprite.y + this_sprite.height) {
             this_sprite.mouse_over = true
@@ -2346,6 +2351,36 @@ $def with (name)
             else if (!this_sprite.mouse_over && this_sprite.image == level_select_menu.arrow_sprites.frames[s+2])
               this_sprite.image = level_select_menu.arrow_sprites.frames[s]
           }
+
+          if (level_edit) {
+            if (player_stage == latest_edit)
+              level_select_menu.sprites[0].active = false
+            else 
+              level_select_menu.sprites[0].active = true
+            if (player_stage == 1) 
+              level_select_menu.sprites[1].active = false
+            else
+              level_select_menu.sprites[1].active = true
+          } else {
+            if (player_level == player_progress.length-1 && player_stage == player_progress[player_progress.length-1])
+              level_select_menu.sprites[0].active = false
+            else
+              level_select_menu.sprites[0].active = true
+            if (player_progress[0] > 0) {
+              if (player_level == 0 && player_stage == 1)
+                level_select_menu.sprites[1].active = false
+              else
+                level_select_menu.sprites[1].active = true
+            } else {
+              if (player_level == 1 && player_stage == 1)
+                level_select_menu.sprites[1].active = false
+              else
+                level_select_menu.sprites[1].active = true
+
+            }
+
+          }
+
         }
 
         // level select arrows
@@ -2353,9 +2388,16 @@ $def with (name)
           image: "./static/images/ARROWS.gif", frame_size: [20,10]})
 
         level_select_menu.up_arrow = new jaws.Sprite({x:level_select_menu.x + 100, y:level_select_menu.y + 20, image: level_select_menu.arrow_sprites.frames[0]})
-        level_select_menu.down_arrow = new jaws.Sprite({x:level_select_menu.x + 100, y:level_select_menu.y + 33, image: level_select_menu.arrow_sprites.frames[1]})
+        level_select_menu.down_arrow = new jaws.Sprite({x:level_select_menu.x + 100, y:level_select_menu.y + 38, image: level_select_menu.arrow_sprites.frames[1]})
+
+        level_select_menu.up_arrow.height = 15
+        level_select_menu.down_arrow.height = 15
+
         level_select_menu.up_arrow.mouse_over = false
         level_select_menu.down_arrow.mouse_over  = false
+
+        level_select_menu.up_arrow.active = true
+        level_select_menu.down_arrow.active = true
 
         level_select_menu.sprites.push(level_select_menu.up_arrow)
         level_select_menu.sprites.push(level_select_menu.down_arrow)
@@ -2384,9 +2426,12 @@ $def with (name)
 
             level_select_string = player_level + "-" + player_stage
             menu.items[0].text = level_select_string
+
           }
 
           menu.down_action = function() {
+
+            console.log("down_action")
 
             if (player_stage > 1)
               player_stage--
@@ -2423,10 +2468,15 @@ $def with (name)
           })
 
           jaws.on_keydown(["left_mouse_button"], function() {
-            if (menu.sprites[0].mouse_over)
+            console.log("click button")
+            if (menu.sprites[0].mouse_over) {
               menu.up_action()
-            else if (menu.sprites[1].mouse_over)
+              console.log("up button")
+            }
+            else if (menu.sprites[1].mouse_over) {
+              console.log("click on down arrow")
               menu.down_action()
+            }
             else if (menu.mouse_inside)
               menu.items[menu.index].action()
             else
