@@ -693,8 +693,6 @@ $def with (name)
                   this_item.sprite.x = player.board.posx(click_x)
                   this_item.sprite.y = player.board.posy(click_y)
 
-                  // add splash
-                  // player.board.effects.push(new Splash(this_stack,this_item.type,this_item.color,click_x,click_y,0))
                 }
 
               }
@@ -1387,10 +1385,6 @@ $def with (name)
 
             }
           }
-
-          // add splashes
-          // if (old_item.type != 0)
-          //   this.board.effects.push(new Splash(this,old_item.type,old_item.color,old_item.x,old_item.y,0))
 
           console.log("block_count = " + this.board.block_count)
           console.log("flask_count = " + this.board.flask_count)
@@ -2134,6 +2128,7 @@ $def with (name)
       // calculate height
       this.height = 20 * (items.length + ((this.title == "") ? 0 : 1)) + 30
 
+      this.sprites = new Array()
 
       this.sprite_sheet = new jaws.SpriteSheet({
         image: "./static/images/MENUBOX_SPRITES.gif", frame_size: [SPRITE_WIDTH,SPRITE_WIDTH]})
@@ -2222,6 +2217,10 @@ $def with (name)
           active_menu.controls(active_menu)
       }
 
+      this.update = function() {
+        return
+      }
+
       this.draw = function() {
 
         // update index according to mouse position if menu is active
@@ -2258,6 +2257,22 @@ $def with (name)
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
           jaws.context.fillText(this.items[i].text, this.x + 20, this.y + 20 * (i + 1 + j) + 10)
 
+        }
+
+        // draw sprites
+        for (var s=0; s < this.sprites.length; s++) {
+
+          var this_sprite = this.sprites[s]
+
+          if (jaws.mouse_x > this_sprite.x && jaws.mouse_x < this_sprite.x + this_sprite.width &&
+              jaws.mouse_y > this_sprite.y && jaws.mouse_y < this_sprite.y + this_sprite.height) {
+            this_sprite.mouse_over = true
+            console.log("mouse over this_sprite")
+          }
+          else
+            this_sprite.mouse_over = false
+
+          this_sprite.draw()
         }
 
       }
@@ -2320,9 +2335,34 @@ $def with (name)
           jaws.start(Game)
         })])
         level_select_menu.back = this.back
+
+        level_select_menu.update = function() {
+
+          // update arrow sprites
+          for (var s=0; s < level_select_menu.sprites.length; s++) {
+            var this_sprite = level_select_menu.sprites[s]
+            if (this_sprite.mouse_over && this_sprite.image == level_select_menu.arrow_sprites.frames[s])
+              this_sprite.image = level_select_menu.arrow_sprites.frames[s+2]
+            else if (!this_sprite.mouse_over && this_sprite.image == level_select_menu.arrow_sprites.frames[s+2])
+              this_sprite.image = level_select_menu.arrow_sprites.frames[s]
+          }
+        }
+
+        // level select arrows
+        level_select_menu.arrow_sprites = new jaws.SpriteSheet({
+          image: "./static/images/ARROWS.gif", frame_size: [20,10]})
+
+        level_select_menu.up_arrow = new jaws.Sprite({x:level_select_menu.x + 100, y:level_select_menu.y + 20, image: level_select_menu.arrow_sprites.frames[0]})
+        level_select_menu.down_arrow = new jaws.Sprite({x:level_select_menu.x + 100, y:level_select_menu.y + 33, image: level_select_menu.arrow_sprites.frames[1]})
+        level_select_menu.up_arrow.mouse_over = false
+        level_select_menu.down_arrow.mouse_over  = false
+
+        level_select_menu.sprites.push(level_select_menu.up_arrow)
+        level_select_menu.sprites.push(level_select_menu.down_arrow)
+
         level_select_menu.controls = function(menu) {
 
-          jaws.on_keydown(["up","w"], function() { 
+          menu.up_action = function() {
 
             if (level_edit) {
 
@@ -2344,10 +2384,9 @@ $def with (name)
 
             level_select_string = player_level + "-" + player_stage
             menu.items[0].text = level_select_string
+          }
 
-          })
-
-          jaws.on_keydown(["down","s"], function() {
+          menu.down_action = function() {
 
             if (player_stage > 1)
               player_stage--
@@ -2359,6 +2398,18 @@ $def with (name)
 
             level_select_string = player_level + "-" + player_stage
             menu.items[0].text = level_select_string
+
+          }
+
+          jaws.on_keydown(["up","w"], function() { 
+
+            menu.up_action()
+
+          })
+
+          jaws.on_keydown(["down","s"], function() {
+
+            menu.down_action()
 
           })
 
@@ -2372,7 +2423,11 @@ $def with (name)
           })
 
           jaws.on_keydown(["left_mouse_button"], function() {
-            if (menu.mouse_inside)
+            if (menu.sprites[0].mouse_over)
+              menu.up_action()
+            else if (menu.sprites[1].mouse_over)
+              menu.down_action()
+            else if (menu.mouse_inside)
               menu.items[menu.index].action()
             else
               menu.back()
@@ -2411,6 +2466,14 @@ $def with (name)
 
         // controls
         active_menu.controls(active_menu)
+      }
+
+      this.update = function() {
+
+        for (var i = 0; i < menus.length; i++) {
+          menus[i].update()
+        }
+
       }
 
       this.draw = function() {
@@ -2847,7 +2910,7 @@ $def with (name)
     jaws.onload = function() {
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
-      jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/BOARD.gif","./static/images/MENUBOX_SPRITES.gif"])
+      jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/BOARD.gif","./static/images/MENUBOX_SPRITES.gif","./static/images/ARROWS.gif"])
 
       if (name_entered)
         jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
