@@ -2209,12 +2209,12 @@ $def with (name)
       }
 
       // sets the game to acknowledge a new active menu
-      this.setActiveMenu = function(new_active,active_menu) {
+      this.setActiveMenu = function(new_active,active_menu,ok_submenu) {
           console.log("set active menu!")
           this.active = false
           active_menu = new_active
           active_menu.active = true
-          active_menu.controls(active_menu)
+          active_menu.controls(active_menu,ok_submenu)
       }
 
       this.update = function() {
@@ -2306,7 +2306,9 @@ $def with (name)
         var main_menu_items = new Array()
           main_menu_items.push(new MenuItem(main_menu,"Begin Game",function() {
             menus.push(level_select_menu)
-            level_select_menu.parent.setActiveMenu(level_select_menu,active_menu)
+            menus.push(level_select_ok)
+            level_select_ok.active = true
+            level_select_menu.parent.setActiveMenu(level_select_menu,active_menu,level_select_ok)
             level_edit = false
             level_select_string = (player_progress.length-1) + "-" + player_progress[player_progress.length-1]
             player_level = player_progress.length - 1
@@ -2318,7 +2320,9 @@ $def with (name)
           }))
           main_menu_items.push(new MenuItem(main_menu,"Level Editor",function() {
             menus.push(level_select_menu)
-            level_select_menu.parent.setActiveMenu(level_select_menu,active_menu)
+            menus.push(level_select_ok)
+            level_select_ok.active = true
+            level_select_menu.parent.setActiveMenu(level_select_menu,active_menu,level_select_ok)
             level_edit = true
             player_level = 0
             player_stage = 1
@@ -2381,6 +2385,13 @@ $def with (name)
 
           }
 
+          if (level_select_ok.active) {
+            if (level_select_ok.mouse_inside)
+              level_select_ok.index = 0
+            else
+              level_select_ok.index = -1
+          }
+
         }
 
         // level select arrows
@@ -2402,7 +2413,12 @@ $def with (name)
         level_select_menu.sprites.push(level_select_menu.up_arrow)
         level_select_menu.sprites.push(level_select_menu.down_arrow)
 
-        level_select_menu.controls = function(menu) {
+        // level select OK sub menu
+        var level_select_ok = new MenuBox("",level_select_menu,level_select_menu.x, level_select_menu.y + level_select_menu.height, 150, [new MenuItem(level_select_ok,"OK",function() {
+          jaws.start(Game)
+        })])
+
+        level_select_menu.controls = function(menu,ok_submenu) {
 
           menu.up_action = function() {
 
@@ -2477,10 +2493,14 @@ $def with (name)
               console.log("click on down arrow")
               menu.down_action()
             }
-            else if (menu.mouse_inside)
+            else if (ok_submenu.mouse_inside)
               menu.items[menu.index].action()
-            else
+            else if (menu.mouse_inside)
+              return
+            else {
+              menus.pop()
               menu.back()
+            }
           })
 
       }
