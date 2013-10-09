@@ -2696,9 +2696,15 @@ $def with (name)
       enter_name = new MenuBox("",enter_name,ITEM_WIDTH,ITEM_WIDTH,300,enter_name_items)
       enter_name.index = 1
 
+      // enter name OK sub menu
+      var enter_name_ok = new MenuBox("",enter_name,enter_name.x, enter_name.y + enter_name.height, 300, [new MenuItem(enter_name_ok,"          OK",function() {
+        jaws.switchGameState(MenuState) 
+      })])
+      enter_name_ok.active = true
+
       this.setup = function() {
 
-        this.controls()
+        this.controls(enter_name,enter_name_ok)
       }
 
       this.draw = function() {
@@ -2713,6 +2719,14 @@ $def with (name)
         if (player_name.length < 10) name_text = name_text + "_"
         enter_name.items[1].text = name_text
         enter_name.draw()
+
+        if (enter_name_ok.active) {
+          if (enter_name_ok.mouse_inside)
+            enter_name_ok.index = 0
+          else
+            enter_name_ok.index = -1
+        }
+        enter_name_ok.draw()
 
         jaws.context.font = "bold 30pt terminal";
         jaws.context.lineWidth = 10
@@ -2731,10 +2745,17 @@ $def with (name)
         jaws.context.fillText(name_text, 210, 275)  
       }
 
-      this.controls = function() {
+      this.controls = function(menu,ok_submenu) {
 
 
         var shift = false
+
+        jaws.on_keydown(["left_mouse_button"], function() {
+
+          if (ok_submenu.mouse_inside) {
+            ok_submenu.items[ok_submenu.index].action()
+          }
+        })
 
         jaws.on_keydown(["shift"], function () {
           shift = true
