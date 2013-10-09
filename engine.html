@@ -137,6 +137,9 @@ $def with (name)
               jaws.start(MainMenu)
             })
           }))
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Load",function() {
+            console.log("Load")
+          }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Copy",function() {
             console.log("Copy")
           }))
@@ -2160,6 +2163,7 @@ $def with (name)
 
       this.title = title
       this.parent = parent // parent menu
+      this.submenus = new Array() // submenus (ok box, etc.)
 
       this.x = x
       this.y = y
@@ -2263,6 +2267,11 @@ $def with (name)
       }
 
       this.update = function() {
+
+        for (var s=0; s < this.submenus.length; s++) {
+          this.submenus[s].update()
+        }
+
         return
       }
 
@@ -2329,6 +2338,28 @@ $def with (name)
 
     }
 
+    // todo: ok sub menu class
+    function OkSubMenu(title,parent,action) {
+
+      this.menu_box = new MenuBox(title,parent,parent.x, parent.y + parent.height, parent.width, [new MenuItem(parent,"OK",function() {
+        action()
+      })])
+
+      this.update = function() {
+        if (this.menu_box.active) {
+          if (this.menu_box.mouse_inside)
+            this.menu_box.index = 0
+          else
+            this.menu_box.index = -1
+        }
+      }
+
+      this.draw = function() {
+        this.menu_box.draw()
+      }
+
+    }
+
     function MainMenu() {
 
       var active_menu
@@ -2352,7 +2383,8 @@ $def with (name)
           main_menu_items.push(new MenuItem(main_menu,"Begin Game",function() {
             menus.push(level_select_menu)
             menus.push(level_select_ok)
-            level_select_ok.active = true
+            // level_select_ok.active = true
+            level_select_ok.menu_box.active = true
             level_select_menu.parent.setActiveMenu(level_select_menu,active_menu,level_select_ok)
             level_edit = false
             level_select_string = (player_progress.length-1) + "-" + player_progress[player_progress.length-1]
@@ -2366,7 +2398,8 @@ $def with (name)
           main_menu_items.push(new MenuItem(main_menu,"Level Editor",function() {
             menus.push(level_select_menu)
             menus.push(level_select_ok)
-            level_select_ok.active = true
+            // level_select_ok.active = true
+            level_select_ok.menu_box.active = true
             level_select_menu.parent.setActiveMenu(level_select_menu,active_menu,level_select_ok)
             level_edit = true
             player_level = 0
@@ -2430,12 +2463,14 @@ $def with (name)
 
           }
 
-          if (level_select_ok.active) {
-            if (level_select_ok.mouse_inside)
-              level_select_ok.index = 0
-            else
-              level_select_ok.index = -1
-          }
+          level_select_ok.update()
+
+          // if (level_select_ok.active) {
+          //   if (level_select_ok.mouse_inside)
+          //     level_select_ok.index = 0
+          //   else
+          //     level_select_ok.index = -1
+          // }
 
         }
 
@@ -2459,9 +2494,13 @@ $def with (name)
         level_select_menu.sprites.push(level_select_menu.down_arrow)
 
         // level select OK sub menu
-        var level_select_ok = new MenuBox("",level_select_menu,level_select_menu.x, level_select_menu.y + level_select_menu.height, 150, [new MenuItem(level_select_ok,"OK",function() {
-          jaws.start(Game)
-        })])
+        // var level_select_ok = new MenuBox("",level_select_menu,level_select_menu.x, level_select_menu.y + level_select_menu.height, 150, [new MenuItem(level_select_ok,"OK",function() {
+        //   jaws.start(Game)
+        // })])
+        var level_select_ok = new OkSubMenu("",level_select_menu,function() {
+          console.log("hawaiian bread")
+          level_select_menu.items[menu.index].action(jaws)
+        })
 
         level_select_menu.controls = function(menu,ok_submenu) {
 
@@ -2538,7 +2577,7 @@ $def with (name)
               console.log("click on down arrow")
               menu.down_action()
             }
-            else if (ok_submenu.mouse_inside)
+            else if (ok_submenu.menu_box.mouse_inside)
               menu.items[menu.index].action()
             else if (menu.mouse_inside)
               return
