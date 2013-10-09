@@ -67,6 +67,7 @@ $def with (name)
       var level_editor
       var pause_menu
       var winlose_menu
+      var level_edit_menu
       var winlose = false
       var restart_menu_item = new MenuItem(pause_menu,"Restart",function() {
         jaws.start(Game)
@@ -125,8 +126,35 @@ $def with (name)
         winlose_menu = new MenuBox(" ",winlose_menu,menu_x, menu_y,4*ITEM_WIDTH,winlose_menu_items)
 
         // level editor
-        if (level_edit)
+        if (level_edit) {
           level_editor = new LevelEditor(player.board)
+
+          // level edit menu
+          var level_edit_menu_items = new Array()
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Save",function() {
+            console.log("Save")
+            saveLevel(player_level,player_stage,player.board,function() {
+              jaws.start(MainMenu)
+            })
+          }))
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Copy",function() {
+            console.log("Copy")
+          }))
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Delete",function() {
+            console.log("Delete")
+          }))
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Clear",function() {
+            console.log("Clear")
+          }))
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Quit",function() {
+            console.log("Quit")
+            jaws.start(MainMenu)
+          }))
+
+          level_edit_menu = new MenuBox("",level_edit_menu,level_editor.board.x + level_editor.board.width + 10, level_editor.board.y,3*ITEM_WIDTH,level_edit_menu_items)
+
+          level_edit_menu.active = true
+        }
 
         console.log("setup game")
         console.log("player_name = " + player_name)
@@ -171,8 +199,11 @@ $def with (name)
 
 
         player.update()
-        if(level_edit)
+        if(level_edit) {
           level_editor.update()
+          if(!level_edit_menu.mouse_inside)
+            level_edit_menu.index = -1
+        }
 
         live_info.innerHTML = jaws.game_loop.fps + " fps. Player: " + parseInt(player.x) + "/" + parseInt(player.y) + ". "
         live_info.innerHTML += "Viewport: " + parseInt(viewport.x) + "/" + parseInt(viewport.y) + "."
@@ -190,8 +221,10 @@ $def with (name)
         // the viewport magic. wrap all draw()-calls inside viewport.apply and it will draw those relative to the viewport.
         viewport.apply( function() {
           player.draw()
-          if(level_edit)
+          if(level_edit) {
             level_editor.draw()
+            level_edit_menu.draw()
+          }
         });
       }
 
@@ -507,6 +540,9 @@ $def with (name)
           } else if (level_edit) {
 
             level_editor.controls(click_x, click_y, right_click)
+            if (level_edit_menu.mouse_inside) {
+              level_edit_menu.items[level_edit_menu.index].action()
+            }
 
           }
         }
