@@ -145,6 +145,7 @@ $def with (name)
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Clear",function() {
             console.log("Clear")
+            player.board.clearBoard()
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Quit",function() {
             console.log("Quit")
@@ -847,6 +848,15 @@ $def with (name)
         this.posx = function(x) { return this.board.x + x * ITEM_WIDTH }
         this.posy = function(y) { return this.board.y + (BOARD_HEIGHT - 1 - y)*ITEM_WIDTH }
 
+        this.clearBoard = function() {
+         
+         for (var s = 0; s < this.stacks.length; s++) {
+          var this_stack = this.stacks[s]
+          this_stack.items = new Array()
+         }
+
+        }
+
         this.fillLevel = function(level,stage) {
 
           loadLevel(level,stage, this, function(data, this_board) {
@@ -1430,7 +1440,6 @@ $def with (name)
 
         }
 
-        // CURRENTLY NOT BEING USED
         this.removeItems = function(old_items) {
 
           for (var i=0; i<old_items.length; i++) {
