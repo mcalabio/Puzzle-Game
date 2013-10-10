@@ -78,7 +78,10 @@ $def with (name)
 
       var save_menu_item = new MenuItem(pause_menu,"Save Level",function() {
         saveLevel(player_level,player_stage,player.board,function() {
-          jaws.start(MainMenu)
+          findEditLevels(function(latest) {
+            latest_edit = latest
+            player_progress[0] = latest - 1
+          })
         })
       })
 
@@ -137,7 +140,11 @@ $def with (name)
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Save",function() {
             console.log("Save")
             saveLevel(player_level,player_stage,player.board,function() {
-              jaws.start(MainMenu)
+              findEditLevels(function(latest) {
+                latest_edit = latest
+                player_progress[0] = latest - 1
+                level_select.stage = latest
+              })
             })
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Load",function() {
@@ -148,6 +155,7 @@ $def with (name)
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Copy",function() {
             console.log("Copy")
+            player_stage = latest_edit
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Delete",function() {
             console.log("Delete")
@@ -332,7 +340,6 @@ $def with (name)
           }
 
           level_select_ok = new OkSubMenu("",level_select_menu,function() {
-            console.log("hawaiian bread")
             level_select_menu.items[menu.index].action(jaws)
           })
 
@@ -360,25 +367,6 @@ $def with (name)
           // console.log(pause_menu)
           pause_menu.controls(pause_menu)
         }
-        else {    
-
-          jaws.on_keydown("l", function() {
-            if (level_edit) {
-              console.log("load level at some point")
-              // saveLevel(player_level,player_stage,player.board,function() {
-              //   jaws.start(MenuState)
-              // })
-            }
-          })
-
-        }
-
-        jaws.on_keydown("r", function() {
-          console.log("JAWS = " + jaws)
-          jaws.start(Game)
-        })  
-
-
 
         player.update()
         if(level_edit) {
