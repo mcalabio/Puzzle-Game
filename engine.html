@@ -57,6 +57,7 @@ $def with (name)
     var game_mode = 1
     var game_record = ""
     var level_edit = false
+    var latest_edit
     var pause = false
 
     function Game() {
@@ -68,6 +69,8 @@ $def with (name)
       var pause_menu
       var winlose_menu
       var level_edit_menu
+      var level_select_menu
+      var level_select_ok
       var winlose = false
       var restart_menu_item = new MenuItem(pause_menu,"Restart",function() {
         jaws.start(Game)
@@ -139,6 +142,9 @@ $def with (name)
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Load",function() {
             console.log("Load")
+            level_select_menu.active = true
+            level_select_menu.controls(level_select_menu,level_select_ok)
+            level_select_ok.menu_box.active = true
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Copy",function() {
             console.log("Copy")
@@ -158,6 +164,177 @@ $def with (name)
           level_edit_menu = new MenuBox("",level_edit_menu,level_editor.board.x + level_editor.board.width + 10, level_editor.board.y,3*ITEM_WIDTH,level_edit_menu_items)
 
           level_edit_menu.active = true
+
+          var level_select_string = player_level + "-" + player_stage
+
+          // level select menu
+          level_select_menu = new MenuBox("Level",level_edit_menu,level_edit_menu.x, level_edit_menu.y + level_edit_menu.height + 1, level_edit_menu.width, [new MenuItem(level_select_menu,level_select_string,function() {
+            jaws.start(Game)
+          })])
+
+          level_select_menu.level = player_level
+          level_select_menu.stage = player_stage
+
+          // level select arrows
+          level_select_menu.arrow_sprites = new jaws.SpriteSheet({
+            image: "./static/images/ARROWS.gif", frame_size: [20,10]})
+
+          level_select_menu.up_arrow = new jaws.Sprite({x:level_select_menu.x + 85, y:level_select_menu.y + 20, image: level_select_menu.arrow_sprites.frames[0]})
+          level_select_menu.down_arrow = new jaws.Sprite({x:level_select_menu.x + 85, y:level_select_menu.y + 38, image: level_select_menu.arrow_sprites.frames[1]})
+
+          level_select_menu.up_arrow.height = 15
+          level_select_menu.down_arrow.height = 15
+
+          level_select_menu.up_arrow.mouse_over = false
+          level_select_menu.down_arrow.mouse_over  = false
+
+          level_select_menu.up_arrow.active = true
+          level_select_menu.down_arrow.active = true
+
+          level_select_menu.sprites.push(level_select_menu.up_arrow)
+          level_select_menu.sprites.push(level_select_menu.down_arrow)
+
+          level_select_menu.update = function() {
+
+            // update arrow sprites
+            for (var s=0; s < level_select_menu.sprites.length; s++) {
+              var this_sprite = level_select_menu.sprites[s]
+              if (this_sprite.mouse_over && this_sprite.image == level_select_menu.arrow_sprites.frames[s])
+                this_sprite.image = level_select_menu.arrow_sprites.frames[s+2]
+              else if (!this_sprite.mouse_over && this_sprite.image == level_select_menu.arrow_sprites.frames[s+2])
+                this_sprite.image = level_select_menu.arrow_sprites.frames[s]
+            }
+
+            if (level_edit) {
+              if (level_select_menu.stage == latest_edit)
+                this.sprites[0].active = false
+              else 
+                this.sprites[0].active = true
+              if (level_select_menu.stage == 1) 
+                this.sprites[1].active = false
+              else
+                this.sprites[1].active = true
+            } else {
+              if (level_select_menu.level == player_progress.length-1 && level_select_menu.stage == player_progress[player_progress.length-1])
+                this.sprites[0].active = false
+              else
+                this.sprites[0].active = true
+              if (player_progress[0] > 0) {
+                if (level_select_menu.level == 0 && level_select_menu.stage == 1)
+                  this.sprites[1].active = false
+                else
+                  this.sprites[1].active = true
+              } else {
+                if (level_select_menu.level == 1 && level_select_menu.stage == 1)
+                  this.sprites[1].active = false
+                else
+                  this.sprites[1].active = true
+
+              }
+
+            }
+
+          }
+
+          level_select_menu.controls = function(menu,ok_submenu) {
+
+            menu.up_action = function() {
+
+              console.log("down_action")
+
+              if (level_edit) {
+
+                if (level_select_menu.stage < latest_edit)
+                  level_select_menu.stage++
+
+              } else {
+
+                if (level_select_menu.stage < player_progress[level_select_menu.level]) {
+                  level_select_menu.stage++
+                } else {
+                  if (level_select_menu.level < player_progress.length - 1) {
+                    level_select_menu.level++
+                    level_select_menu.stage = 1
+                  }
+                }
+
+              }
+
+              level_select_string = level_select_menu.level + "-" + level_select_menu.stage
+              menu.items[0].text = level_select_string
+
+            }
+
+            menu.down_action = function() {
+
+              console.log("down_action")
+
+              if (level_select_menu.stage > 1)
+                level_select_menu.stage--
+              else if (level_select_menu.level > 0 && player_progress[level_select_menu.level-1] > 0){
+                if(level_edit) return
+                level_select_menu.level--
+                level_select_menu.stage = player_progress[level_select_menu.level]
+              }
+
+              level_select_string = level_select_menu.level + "-" + level_select_menu.stage
+              menu.items[0].text = level_select_string
+
+            }
+
+            jaws.on_keydown(["up","w"], function() { 
+
+              menu.up_action()
+
+            })
+
+            jaws.on_keydown(["down","s"], function() {
+
+              menu.down_action()
+
+            })
+
+            jaws.on_keydown(["enter","space"], function() {
+              console.log("performing action")
+              menu.items[menu.index].action(jaws)
+            })
+
+            jaws.on_keydown(["esc","a","left"], function() {
+              menu.back()
+            })
+
+            jaws.on_keydown(["left_mouse_button"], function() {
+              console.log("click button")
+              if (menu.sprites[0].mouse_over) {
+                menu.up_action()
+                console.log("up button")
+              }
+              else if (menu.sprites[1].mouse_over) {
+                console.log("click on down arrow")
+                menu.down_action()
+              }
+              else if (ok_submenu.menu_box.mouse_inside) {
+                console.log("ok!")
+                player_level = menu.level
+                player_stage = menu.stage
+                menu.items[menu.index].action()
+              }
+              else if (menu.mouse_inside)
+                return
+              else {
+                console.log("elsing")
+                menu.active = false
+                ok_submenu.active = false
+              }
+            })
+
+          }
+
+          level_select_ok = new OkSubMenu("",level_select_menu,function() {
+            console.log("hawaiian bread")
+            level_select_menu.items[menu.index].action(jaws)
+          })
+
         }
 
         console.log("setup game")
@@ -207,6 +384,10 @@ $def with (name)
           level_editor.update()
           if(!level_edit_menu.mouse_inside)
             level_edit_menu.index = -1
+          if(level_select_menu.active)
+            level_select_menu.update()
+          if(level_select_ok.menu_box.active)
+            level_select_ok.update()
         }
 
         live_info.innerHTML = jaws.game_loop.fps + " fps. Player: " + parseInt(player.x) + "/" + parseInt(player.y) + ". "
@@ -228,6 +409,10 @@ $def with (name)
           if(level_edit) {
             level_editor.draw()
             level_edit_menu.draw()
+            if (level_select_menu.active)
+              level_select_menu.draw()
+            if (level_select_ok.menu_box.active)
+              level_select_ok.draw()
           }
         });
       }
@@ -2328,7 +2513,6 @@ $def with (name)
           if (jaws.mouse_x > this_sprite.x && jaws.mouse_x < this_sprite.x + this_sprite.width &&
               jaws.mouse_y > this_sprite.y && jaws.mouse_y < this_sprite.y + this_sprite.height) {
             this_sprite.mouse_over = true
-            console.log("mouse over this_sprite")
           }
           else
             this_sprite.mouse_over = false
@@ -2366,7 +2550,6 @@ $def with (name)
 
       var active_menu
       var menus = new Array()
-      var latest_edit
       findEditLevels(function(latest) {
         latest_edit = latest
         player_progress[0] = latest - 1
@@ -2466,13 +2649,6 @@ $def with (name)
           }
 
           level_select_ok.update()
-
-          // if (level_select_ok.active) {
-          //   if (level_select_ok.mouse_inside)
-          //     level_select_ok.index = 0
-          //   else
-          //     level_select_ok.index = -1
-          // }
 
         }
 
@@ -2589,7 +2765,7 @@ $def with (name)
             }
           })
 
-      }
+        }
 
         // options menu
         var options_menu = new MenuBox("",main_menu,main_menu.x + main_menu.width + 1, main_menu.y, 150, [new MenuItem(options_menu, "Controls", function() {
