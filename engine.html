@@ -137,6 +137,17 @@ $def with (name)
 
           // level edit menu
           var level_edit_menu_items = new Array()
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"New",function() {
+            console.log("New")
+            player_stage = latest_edit
+            jaws.start(Game)
+          }))
+          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Load",function() {
+            console.log("Load")
+            level_select_menu.active = true
+            level_select_menu.controls(level_select_menu,level_select_ok)
+            level_select_ok.menu_box.active = true
+          }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Save",function() {
             console.log("Save")
             saveLevel(player_level,player_stage,player.board,function() {
@@ -146,12 +157,6 @@ $def with (name)
                 level_select.stage = latest
               })
             })
-          }))
-          level_edit_menu_items.push(new MenuItem(level_edit_menu,"Load",function() {
-            console.log("Load")
-            level_select_menu.active = true
-            level_select_menu.controls(level_select_menu,level_select_ok)
-            level_select_ok.menu_box.active = true
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Copy",function() {
             console.log("Copy")
