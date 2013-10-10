@@ -258,13 +258,15 @@ $def with (name)
         // player controls
         this.controls = function() {
 
+          jaws.on_keydown(["enter","esc","p"], function() {
+
+            if (game_end == "")
+              pauseGame(pause_menu,player,restart_menu_item,save_menu_item)
+
+          })  
+
           if (control_scheme == 1) {
-            jaws.on_keydown(["enter","esc","p"], function() {
-
-              if (game_end == "")
-                pauseGame(pause_menu,player,restart_menu_item,save_menu_item)
-
-            })   
+ 
 
             jaws.on_keydown(["left","a"], function() {
               if (pause || game_end != "") return
