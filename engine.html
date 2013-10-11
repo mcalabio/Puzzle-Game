@@ -1018,6 +1018,7 @@ $def with (name)
 
         this.draw = function() {
 
+          this.hand.draw()
           this.board.draw()
 
           for (var f = 0; f < this.flasks.length; f++) {
@@ -1029,8 +1030,6 @@ $def with (name)
           for (var r = 0; r < this.robots.length; r++) {
             this.robots[r].draw()
           }
-
-          this.hand.draw()
 
         }
 
@@ -2497,6 +2496,9 @@ $def with (name)
         // update index according to mouse position if menu is active
         if (this.active)
           this.index = this.menuCoordinates(jaws.mouse_x,jaws.mouse_y)
+
+        jaws.context.fillStyle = "Black"
+        jaws.context.fillRect(this.x + 2,this.y + 2,this.width - 4,this.height - 4)
 
         // draw edges
         this.sprite_nw.draw()
