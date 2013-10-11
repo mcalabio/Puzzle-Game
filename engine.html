@@ -164,6 +164,12 @@ $def with (name)
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Delete",function() {
             console.log("Delete")
+            deleteLevel (player_level,player_stage,function(latest){
+              latest_edit = latest
+              player_progress[0] = latest - 1
+              player_stage = latest_edit
+              jaws.start(Game)              
+            })
           }))
           level_edit_menu_items.push(new MenuItem(level_edit_menu,"Clear",function() {
             console.log("Clear")
@@ -2297,7 +2303,7 @@ $def with (name)
 
     function loadLevel (level,stage,board,callback) {
 
-      var json_data = JSON.stringify({'type': "loadLevel", 'level': [level,stage]})
+      var json_data = JSON.stringify({'type': "loadLevel", 'level': [level,stage], 'latest': latest_edit})
 
       console.log("loading stage = " + level)
       jQuery.ajax({
@@ -2306,6 +2312,22 @@ $def with (name)
         success: function(data) {
           console.log("retrieved level data from server = " + data)
           callback(data,board)
+        }
+      })
+
+    }
+
+    function deleteLevel (level,stage,callback) {
+
+      var json_data = JSON.stringify({'type': "deleteLevel", 'level': [level,stage]})
+
+      console.log("deleting stage = " + stage)
+      jQuery.ajax({
+        type: "POST",
+        data: json_data,
+        success: function(data) {
+          console.log("deleted level data from server. last level found = 0-" + data)
+          callback(data)
         }
       })
 
