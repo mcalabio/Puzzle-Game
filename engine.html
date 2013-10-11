@@ -196,11 +196,10 @@ $def with (name)
 
           // level select menu
           level_select_menu = new MenuBox("Level",level_edit_menu,level_edit_menu.x, level_edit_menu.y + level_edit_menu.height + 1, level_edit_menu.width, [new MenuItem(level_select_menu,level_select_string,function() {
-            if (level_select_menu.stage == latest_edit) {
+            if (player_stage == latest_edit) {
               level_select_menu.active = false
               level_select_ok.menu_box.active = false
               player.controls()
-              player_stage = latest_edit - 1
             }
             else
               jaws.start(Game)
