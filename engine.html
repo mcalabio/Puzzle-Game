@@ -2806,15 +2806,11 @@ $def with (name)
         var controls_menu_items = new Array()
           controls_menu_items.push(new MenuItem(controls_menu, "Keyboard", function() {
             control_scheme = 1
-            menus.pop()
-            active_menu = options_menu
-            active_menu.controls(options_menu)
+            controls_menu.back()
           }))
           controls_menu_items.push(new MenuItem(controls_menu, "Mouse", function() {
             control_scheme = 2
-            menus.pop()
-            active_menu = options_menu
-            active_menu.controls(options_menu)
+            controls_menu.back()
           }))
         var controls_menu = new MenuBox("",options_menu,options_menu.x + options_menu.width + 1, options_menu.y, 150, controls_menu_items)
         controls_menu.index = control_scheme - 1
