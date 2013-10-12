@@ -11,7 +11,6 @@ $def with (name)
 <body>
 
   <canvas width=600 height=500></canvas>
-  Move with arrow keys.
   <div id="live_info"></div>
 
   <script>
@@ -404,8 +403,8 @@ $def with (name)
             level_select_ok.update()
         }
 
-        live_info.innerHTML = jaws.game_loop.fps + " fps. Player: " + parseInt(player.x) + "/" + parseInt(player.y) + ". "
-        live_info.innerHTML += "Viewport: " + parseInt(viewport.x) + "/" + parseInt(viewport.y) + "."
+        // live_info.innerHTML = jaws.game_loop.fps + " fps. Player: " + parseInt(player.x) + "/" + parseInt(player.y) + ". "
+        // live_info.innerHTML += "Viewport: " + parseInt(viewport.x) + "/" + parseInt(viewport.y) + "."
 
       }
 
@@ -734,8 +733,8 @@ $def with (name)
                 if (click_y == this_stack.items.length)
                   depth = 1
               }
-              if (hit_wall)
-               depth = 0
+
+              // drop remaining items on hand
               console.log("depth = " + depth)
               this.drop(this_stack,depth)
 
@@ -1643,6 +1642,7 @@ $def with (name)
 
         }
 
+        // only used by level editor
         this.removeItems = function(old_items) {
 
           for (var i=0; i<old_items.length; i++) {
@@ -1947,11 +1947,6 @@ $def with (name)
         this.stack = stack
         this.type = type
         this.color = color
-        // if (color == EMPTY) this.type = 1
-        // else if (color > WHITE) {
-        //   this.type = 2
-        //   this.color = color - 7
-        // }
         this.x = x             // x position on the board
         this.y = y             // y position on the board
         this.breaking = false
