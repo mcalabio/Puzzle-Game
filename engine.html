@@ -463,6 +463,12 @@ $def with (name)
 
           })  
 
+          jaws.on_keydown(["r"], function() {
+
+            jaws.start(Game)
+
+          })  
+
           if (control_scheme == 1) {
  
 
@@ -1607,7 +1613,10 @@ $def with (name)
           } else if (old_item.type == 1) {
             this.board.flask_count[old_item.color]--
           } else if (old_item.type == 2) {
-            this.board.robot_count[old_item.color]--
+            if (old_item.color > 2)
+              this.board.robot_count[4]--  // all armored robots count as yellow
+            else
+              this.board.robot_count[old_item.color]--
           }
 
           if (level_edit)
