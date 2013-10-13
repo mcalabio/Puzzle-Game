@@ -1111,8 +1111,12 @@ $def with (name)
               }
 
             }
-          })
 
+            console.log("block_count = " + this_board.block_count)
+            console.log("flask_count = " + this_board.flask_count)
+            console.log("robot_count = " + this_board.robot_count)
+
+          })
           
         }
 
@@ -1323,6 +1327,8 @@ $def with (name)
         // check if the player has reached a win/lose condition and act accordingly
         this.checkWinLose = function() {
 
+          console.log("CHECKING")
+
           // win condition: robots cleared
           console.log("checking win condition")
           if (!(this.robot_count<[0,0,0,0,0,0] || [0,0,0,0,0,0]<this.robot_count)) { // array equality
@@ -1336,6 +1342,10 @@ $def with (name)
           console.log("checking lose conditions")
           var remaining_robot_colors = 0
           for (var c=0; c < 6; c++) {
+
+            if (c == 2 || c > 4)
+              continue
+
             if (this.robot_count[c] > 0)
               remaining_robot_colors++
             if (this.flask_count[c] > 0)
@@ -1343,6 +1353,9 @@ $def with (name)
           }
           var potential_white_potions = this.block_count[WHITE] / 3 + this.flask_count[WHITE]
           for (var c=0; c < 6; c++) {
+
+            if (c == 2 || c > 4)
+
             if (this.robot_count[c] > 0) {
               console.log("robots of color " + COLORS[c] + " still exist!")
               console.log("block count = " + this.block_count[c])
@@ -1613,8 +1626,10 @@ $def with (name)
           } else if (old_item.type == 1) {
             this.board.flask_count[old_item.color]--
           } else if (old_item.type == 2) {
-            if (old_item.color > 2)
-              this.board.robot_count[4]--  // all armored robots count as yellow
+            if (old_item.color > 2) {
+              this.board.robot_count[4]--  // all armored robots count as yellowß
+              console.log("decrement yellow robot count")
+            }
             else
               this.board.robot_count[old_item.color]--
           }
@@ -1673,8 +1688,8 @@ $def with (name)
           // replace robot with color of (old_item.color - 3)
           this.items.splice(old_item.y,1,new Item(this,2,old_item.color-3,old_item.x,old_item.y))
 
-          // update board count
-          this.board.robot_count[old_item.color]--
+          // update yellow robot count
+          this.board.robot_count[4]--
 
           // check for win/lose only when blocks and robots are broken since flasks break first
           // but only check when items aren't breaking
@@ -1982,7 +1997,11 @@ $def with (name)
           this.sprite = new jaws.Sprite({x:this.stack.board.posx(x),y:this.stack.board.posy(y), anchor: "left"})
           var anim = new jaws.Animation({sprite_sheet: "./static/images/ROBOT_" + COLORS[this.color] + ".gif", frame_size: [40,40], frame_duration: 100})
           this.sprite.anim_default = anim.slice(0,5)
-          board.robot_count[this.color] += 1
+
+          if (this.color > 2)
+            board.robot_count[4] += 1
+          else
+            board.robot_count[this.color] += 1
         }
         this.sprite.dx = this.stack.board.posx(x)
         this.sprite.dy = this.stack.board.posy(y)
