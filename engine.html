@@ -1853,6 +1853,7 @@ $def with (name)
               }
 
               // update robots
+              // todo: check for yellow robots
               else if (item.type == 2) {
 
                 // clear robots
@@ -1862,7 +1863,7 @@ $def with (name)
                 if (above != undefined) {
 
                   // break robot and same-colored flask above
-                  if (above.sleepcounter == 0 && above.color == item.color && above.type == 1) {
+                  if (above.sleepcounter == 0 && above.color == ((item.color > 2) ? 4 : item.color) && above.type == 1) {
 
                     // item.breaking = true
                     // above.breaking = true
@@ -1877,7 +1878,7 @@ $def with (name)
                     console.log("(" + above.color + ") flask breaking robot of color (" + item.color + ") with chain = " + item.chain + " and splash_order = " + item.splash_order)
 
                   // break if robot above is breaking
-                  } else if (above.type == 2 && above.color == item.color && above.breaking) {
+                  } else if (above.type == 2 && ((item.color > 2) ? (above.color > 2):(above.color == item.color)) && above.breaking) {
 
                     // item.breaking = true
 
@@ -1894,7 +1895,7 @@ $def with (name)
                 if (below != undefined) {
 
                   // break robot and same-colored flask below
-                  if (below.sleepcounter == 0 && below.color == item.color && below.type == 1) {
+                  if (below.sleepcounter == 0 && below.color == ((item.color > 2) ? 4 : item.color) && below.type == 1) {
 
                     // item.breaking = true
                     // below.breaking = true
@@ -1909,7 +1910,7 @@ $def with (name)
                     console.log("(" + below.color + ") flask breaking robot of color (" + item.color + ") with chain = " + item.chain + " and splash_order = " + item.splash_order)
 
                   // break if robot below is breaking
-                  } else if (below.type == 2 && below.color == item.color && below.breaking) {
+                  } else if (below.type == 2 && ((item.color > 2) ? (below.color > 2):(below.color == item.color)) && below.breaking) {
 
                     // item.breaking = true
 
