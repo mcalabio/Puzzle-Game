@@ -44,6 +44,34 @@ $def with (name)
       WHITE : 7
     }
 
+    // PROBABILITIES FOR
+    // GENERATING RANDOM ITEMS IN MARATHON
+    var ITEM_PROBS = {
+
+    // BLOCKS
+      "0|0" : 6 , // RED
+      "0|1" : 6 , // GREEN
+      "0|2" : 6 , // PURPLE
+      "0|4" : 4 , // YELLOW
+      "0|7" : 6 , // WHITE
+
+    // POTIONS
+      "1|0" : 6 , // RED
+      "1|1" : 6 , // GREEN
+      "1|2" : 6 , // PURPLE
+      "1|4" : 6 , // YELLOW
+      "1|6" : 6 , // EMPTY
+      "1|7" : 6 , // WHITE
+
+    // ROBOTS
+      "2|0" : 6 , // RED
+      "2|1" : 6 , // GREEN
+      "2|2" : 6 , // PURPLE
+      "2|3" : 6 , // RED ARMOR
+      "2|4" : 6 , // GREEN ARMOR
+      "2|5" : 6 , // PURPLE ARMOR
+    }
+
     // GLOBALS
     var X_SPEED = SLOW
     var Y_SPEED = FAST
@@ -56,6 +84,7 @@ $def with (name)
     var game_mode = 1
     var game_record = ""
     var level_edit = false
+    var marathon = false
     var latest_edit
     var pause = false
 
@@ -84,6 +113,8 @@ $def with (name)
         })
       })
 
+      var randomization_array = new Array()
+
       /* Called once when a game state is activated. Use it for one-time setup code. */
       this.setup = function() {
         // live_info = document.getElementById("live_info")
@@ -100,7 +131,14 @@ $def with (name)
         player.controls()
 
         // fill up the level with items
-        player.board.fillLevel(player_level,player_stage)
+
+        if (marathon) {
+          console.log("MARATHON")
+          player.board.marathonLevel(5)
+        }
+        else {
+          player.board.fillLevel(player_level,player_stage)
+       }
 
         // pause menu
         pause = false
@@ -1074,6 +1112,61 @@ $def with (name)
 
         }
 
+        // TODO:  generate random item
+        this.randomItem = function(stack,x,y) {
+
+          var type_color_string = randomization_array.pop()
+          randomization_array.push(type_color_string)
+          fisherYates(randomization_array)
+          var type_color = type_color_string.split("|")
+          var type = type_color[0]
+          var color = type_color[1]
+
+          return new Item(stack,type,color,x,y)
+
+        }
+
+        // TODO: MARATHON LEVEL
+        this.marathonLevel = function(level) {
+
+          var value
+
+          // fill up the randomization array
+          for (var key in ITEM_PROBS) {
+            if (ITEM_PROBS.hasOwnProperty(key)) {
+              value = ITEM_PROBS[key]
+
+              for (var i = 0; i < value; i++) {
+                randomization_array.push(key)
+              }
+
+            }
+          }
+
+          // shuffle the randomization array
+          fisherYates(randomization_array)
+          for (var i = 0; i < randomization_array.length; i++) {
+            console.log("randomization_array " + i + " = " + randomization_array[i])
+          }
+
+          // create stacks for the board
+          var random_item
+          for (var s = 0; s < BOARD_WIDTH; s++) {
+            this.stacks.push(new Stack(this,level,s))
+            var this_stack = this.stacks[s]
+            // add level amount of random items to this stack
+            for (var l = 0; l < level; l++) {
+
+              random_item = this.randomItem(this_stack,s,l)
+              this_stack.items.push(random_item)
+
+            }
+
+          }
+
+
+        }
+
         this.fillLevel = function(level,stage) {
 
           loadLevel(level,stage, this, function(data, this_board) {
@@ -1479,20 +1572,25 @@ $def with (name)
 
         // draw all stacks and effects on this board
         this.draw = function() {
+
+          // board sprite
           jaws.context.drawImage(jaws.assets.get("./static/images/BOARD.gif"), this.board.x, this.board.y )
 
+          // player name
           jaws.context.font = "bold 25pt terminal";
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  "Black"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
           jaws.context.fillText(player_name, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 25)
 
+          // player level
           jaws.context.font = "bold 25pt terminal";
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  "Black"
           jaws.context.strokeStyle =  "rgba(200,200,200,0.0)"
-          jaws.context.fillText(player_level + " - " + player_stage, this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 75)
+          jaws.context.fillText((marathon)?("Marathon"):(player_level + " - " + player_stage), this.board.x + BOARD_WIDTH * ITEM_WIDTH + 100, this.board.y + 75)
 
+          // timer
           jaws.context.font = "bold 25pt terminal";
           jaws.context.lineWidth = 10
           jaws.context.fillStyle =  (game_end == "") ? "Black" : "Red"
@@ -2033,9 +2131,6 @@ $def with (name)
         this.sprite.dx = this.stack.board.posx(x)
         this.sprite.dy = this.stack.board.posy(y)
 
-        // update item count of the board
-
-
         this.matchBlocks = function(item) { // item to check if this matches with
 
           if (!this.breaking && this.type == 0 && item.type == this.type && item.color == this.color)
@@ -2105,7 +2200,7 @@ $def with (name)
                   this.color = UNSTABLE
                   this.breaking = true 
 
-                  // todo: put splashes here
+                  // put splashes here
                   this.stack.board.effects.push(new Splash(this.stack,this.type,this.color,this.x,this.y,this.deathcounter))
 
                   // update sprite data       
@@ -2613,7 +2708,7 @@ $def with (name)
 
     }
 
-    // todo: ok sub menu class
+    // ok sub menu class
     function OkSubMenu(title,parent,action) {
 
       this.menu_box = new MenuBox(title,parent,parent.x, parent.y + parent.height, parent.width, [new MenuItem(parent,"OK",function() {
@@ -2665,6 +2760,11 @@ $def with (name)
             player_level = player_progress.length - 1
             player_stage = player_progress[player_progress.length - 1]
             level_select_menu.items[0].text = level_select_string
+          }))
+          main_menu_items.push(new MenuItem(main_menu,"Marathon",function() {
+            level_edit = false
+            marathon = true
+            jaws.start(Game)
           }))
           main_menu_items.push(new MenuItem(main_menu,"Change Name",function() {
             jaws.start(PlayerNameState)
