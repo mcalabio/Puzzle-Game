@@ -51,7 +51,7 @@ $def with (name)
     var player_name = "zonky"
     var player_level = 1
     var player_stage = 1
-    var player_progress = [0,1]
+    var player_progress = [0,4]
     var control_scheme = 2
     var game_mode = 1
     var game_record = ""
@@ -1802,6 +1802,9 @@ $def with (name)
 
             this_flask.breaking = true
 
+            // put splashes here
+            this.board.effects.push(new Splash(this,this_flask.type,this_flask.color,this_flask.x,this_flask.y,this_flask.deathcounter))
+
             // update sprite data       
             this_flask.sprite = new jaws.Sprite({x:this_flask.stack.board.posx(this_flask.x),y:this_flask.stack.board.posy(this_flask.y), anchor: "left"})
             var anim = new jaws.Animation({sprite_sheet: "./static/images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20 + Math.floor(Math.random()*((60-20) + 1))})
@@ -1901,7 +1904,7 @@ $def with (name)
               }
 
               // update robots
-              // todo: check for yellow robots
+              // check for yellow robots
               else if (item.type == 2) {
 
                 // clear robots
@@ -2102,6 +2105,9 @@ $def with (name)
                   this.color = UNSTABLE
                   this.breaking = true 
 
+                  // todo: put splashes here
+                  this.stack.board.effects.push(new Splash(this.stack,this.type,this.color,this.x,this.y,this.deathcounter))
+
                   // update sprite data       
                   this.sprite = new jaws.Sprite({x:this.stack.board.posx(above.x),y:this.stack.board.posy(above.y - 1), anchor: "left"})
                   var anim = new jaws.Animation({sprite_sheet: "./static/images/POTION_SPRITES.gif", frame_size: [40,40], frame_duration: 20})
@@ -2141,9 +2147,12 @@ $def with (name)
         this.delay = delay // delay animation until counter goes to 0
 
         // set appropriate sprite for this Splash
-
-        this.sprite_sheet = new jaws.SpriteSheet({
-          image: "./static/images/ROBOT_" + COLORS[color] + "_SPLASH.gif", frame_size: [20,20]})
+        if (type == 1)
+          this.sprite_sheet = new jaws.SpriteSheet({
+            image: "./static/images/POTION_SPLASH.gif", frame_size: [20,20]})          
+        else if (type == 2)
+          this.sprite_sheet = new jaws.SpriteSheet({
+            image: "./static/images/ROBOT_" + COLORS[color] + "_SPLASH.gif", frame_size: [20,20]})
 
         this.sprite1 = new jaws.Sprite({x:this.stack.board.posx(x), y:this.stack.board.posy(y), image: this.sprite_sheet.frames[0]})
         this.sprite2 = new jaws.Sprite({x:this.stack.board.posx(x)+20, y:this.stack.board.posy(y), image: this.sprite_sheet.frames[1]})
@@ -3339,7 +3348,7 @@ $def with (name)
     jaws.onload = function() {
       console.log("Bugs: need to check if there's enough flasks for lose condition")
       jaws.unpack()     
-      jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/BOARD.gif","./static/images/MENUBOX_SPRITES.gif","./static/images/ARROWS.gif"])
+      jaws.assets.add(["./static/images/cursor.gif","./static/images/BLUE.gif","./static/images/GREEN.gif","./static/images/RED.gif","./static/images/YELLOW.gif","./static/images/PURPLE.gif","./static/images/WHITE.gif","./static/images/ORANGE.gif","./static/images/POTION_EMPTY.gif","./static/images/POTION_BLUE.gif","./static/images/POTION_GREEN.gif","./static/images/POTION_RED.gif","./static/images/POTION_YELLOW.gif","./static/images/POTION_PURPLE.gif","./static/images/POTION_WHITE.gif","./static/images/POTION_ORANGE.gif","./static/images/POTION_SPRITES.gif","./static/images/ROBOT_RED.gif","./static/images/ROBOT_WHITE.gif","./static/images/ROBOT_YELLOW.gif","./static/images/ROBOT_PURPLE.gif","./static/images/ROBOT_GREEN.gif","./static/images/ROBOT_BLUE.gif","./static/images/ROBOT_ORANGE.gif","./static/images/ROBOT_RED_DEATH.gif","./static/images/ROBOT_YELLOW_DEATH.gif","./static/images/ROBOT_PURPLE_DEATH.gif","./static/images/ROBOT_RED_SPLASH.gif","./static/images/ROBOT_BLUE_SPLASH.gif","./static/images/ROBOT_YELLOW_SPLASH.gif","./static/images/ROBOT_GREEN_SPLASH.gif","./static/images/ROBOT_PURPLE_SPLASH.gif","./static/images/ROBOT_ORANGE_SPLASH.gif","./static/images/POTION_SPLASH.gif","./static/images/BOARD.gif","./static/images/MENUBOX_SPRITES.gif","./static/images/ARROWS.gif"])
 
       if (name_entered)
         jaws.start(MenuState)  // Our convenience function jaws.start() will load assets, call setup and loop update/draw in 60 FPS
