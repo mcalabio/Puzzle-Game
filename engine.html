@@ -453,6 +453,9 @@ $def with (name)
         // player timer
         this.timer = new Timer(this)
 
+        // count player actions
+        this.moves = 0
+
         // player controls
         this.controls = function() {
 
@@ -612,6 +615,9 @@ $def with (name)
         // grab depth amount of items from stack
         this.grab = function(stack,depth) {
 
+          this.moves++
+          console.log("player moves = " + this.moves)
+
           // move the cursor quickly to the top of the screen
           this.cursor_speed = Y_SPEED
 
@@ -652,6 +658,9 @@ $def with (name)
 
         // drop depth amount of items onto stack
         this.drop = function(stack,depth) {
+
+          this.moves++
+          console.log("player moves = " + this.moves)
 
           var hand_items = this.hand.items
           var stack_items = stack.items
@@ -2281,7 +2290,7 @@ $def with (name)
     function buildRecordString (board, winloss) {
 
       var control_text = (control_scheme == 1) ? "KB" : "MS"
-      var record = player_name + " " + control_text + " " + player_level + "-" + player_stage + " (" + board.player.timer.clock_text + ") " + winloss + "\n"
+      var record = player_name + " " + control_text + " " + player_level + "-" + player_stage + " (" + board.player.timer.clock_text + ")/(" + board.player.moves + ") " + winloss + "\n"
 
       console.log(record)
 
