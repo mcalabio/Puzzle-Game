@@ -52,7 +52,7 @@ $def with (name)
     var player_level = 1
     var player_stage = 1
     var player_progress = [0,1]
-    var control_scheme = 1
+    var control_scheme = 2
     var game_mode = 1
     var game_record = ""
     var level_edit = false
@@ -1341,20 +1341,35 @@ $def with (name)
           // lose condition: no more blocks/flasks to clear robots
           console.log("checking lose conditions")
           var remaining_robot_colors = 0
+          var remaining_armor_robots = 0
           for (var c=0; c < 6; c++) {
 
-            if (c == 2 || c > 4)
+            // catch all armored robots
+            if (c > 2 && this.robot_count[c] > 0) {
+              remaining_armor_robots++
               continue
+            }
 
             if (this.robot_count[c] > 0)
               remaining_robot_colors++
             if (this.flask_count[c] > 0)
               remaining_robot_colors --
           }
+
+          if (remaining_armor_robots > 0)
+            remaining_robot_colors++
+          if (this.flask_count[4] > 0)
+            remaining_robot_colors--
+
           var potential_white_potions = this.block_count[WHITE] / 3 + this.flask_count[WHITE]
+
+          console.log("potential_white_potions = " + potential_white_potions)
+          console.log("remaining_robot_colors = " + remaining_robot_colors)
+
           for (var c=0; c < 6; c++) {
 
-            if (c == 2 || c > 4)
+            if (c == 3 || c > 5)
+              continue
 
             if (this.robot_count[c] > 0) {
               console.log("robots of color " + COLORS[c] + " still exist!")
@@ -1389,7 +1404,7 @@ $def with (name)
 
           if (game_end == "W") {
             
-            if (player_stage < 10) {
+            if (player_stage < (player_level == 0) ? latest_edit : 14) {
               player_stage++
 
               // update player progress
